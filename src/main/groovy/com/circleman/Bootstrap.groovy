@@ -25,12 +25,14 @@ class Bootstrap extends BaseApp{
 
     static void main(String[] args){
 
-        loadConfig()
+        LoadConfig()
         staticFiles.location("/assets")
         port(8080)
         initDatastore()
         initDomainDefaultAction()
 
+
+        log.info getConfig("framework.port").toString()
 
         log.info System.getProperty("user.dir")
 

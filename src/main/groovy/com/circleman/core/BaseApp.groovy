@@ -1,6 +1,6 @@
 package com.circleman.core
 
-
+import com.circleman.util.EnvConfig
 import com.google.gson.Gson
 import grails.gorm.annotation.Entity
 import groovy.json.JsonOutput
@@ -17,7 +17,21 @@ import spark.template.velocity.VelocityTemplateEngine
 
 import static spark.Spark.get
 
-class BaseApp {
+class BaseApp extends EnvConfig{
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     //静态工具相关
     private static Gson gson = new Gson()
     static HibernateDatastore datastore
@@ -27,11 +41,7 @@ class BaseApp {
     private static Map config= null
 
 
-    //环境相关
-    private static String env = null
-    private static String DEVELOP = "DEVELOP"
-    private static String TEST = "TEST"
-    private static String PRODUCT = "PRODUCT"
+
 
     //ORM相关
     static Map<String, MetaDomain> metaDomainMap =[:]
@@ -277,38 +287,6 @@ class BaseApp {
             println "initDomainDefaultAction failed!${e.message}"
         }
     }
-
-    static Object getConfig(String key){
-        return config.get(key)
-    }
-
-    //TODO: 重复代码和LoadConfig
-    static synchronized String getEnv(){
-
-        if(env == null){
-            env = new ConfigSlurper().parse(new File("./src/main/resources/config/config.groovy").toURI().toURL()).get("environment") ?: DEVELOP
-        }
-
-        return env
-    }
-
-    static void loadConfig(){
-
-        if(config == null) {
-            try {
-                println "loadConfig()"
-                config = new ConfigSlurper(getEnv()).parse(new File("./src/main/resources/config/config.groovy").toURI().toURL()).flatten()
-                println config
-
-                log.debug("Config:\n ${JsonOutput.prettyPrint(gson.toJson(config))}")
-
-                println JsonOutput.prettyPrint(gson.toJson(config))
-            } catch (Exception e) {
-                log.error("loadConfig error: ${e.message}")
-            }
-        }
-    }
-
 
     static List<Object> query(OrmQuery query){
         List<Object> results=[]
