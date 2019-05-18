@@ -1,0 +1,41 @@
+
+
+## 导入资源
+#macro(resources $title $debug)
+
+    <meta charset="UTF-8">
+    <title>$!{title}</title>
+    <link rel="stylesheet" href="/webix/webix.css" />
+    <link rel="stylesheet" href="/webix/skins/material.css" />
+    <link rel="stylesheet" href="/material-design-icons/css/materialdesignicons.css" />
+    <link rel="stylesheet" href="/css/circleman.css" />
+    <script type="text/javascript" src="/webix/webix.js" />
+    <script type="text/javascript" src="/webix/locales/zh.js" />
+    <script type="text/javascript" src="/webix/locales/zh-CN.js" />
+    <script type="text/javascript" src="/js/circleman.js" />
+    #if($debug)
+
+    <script type="application/javascript">
+        webix.debug({events: true, size:true});
+    </script>
+    #end
+#end
+
+## 图(line, bar, etc)
+#macro(chart $id $type $label $value $url $refresh)
+
+    var ${id}={
+        id: "${id}",
+        view: "chart",
+        type: "${type}",
+        label: "#${label}#",
+        value: "#${value}#",
+        url: "${url}"
+    };
+    #if($refresh)
+    setInterval(function(){
+        $$("${id}").clearAll();
+        $$("${id}").load("${url}");
+    }, ${refresh});
+    #end
+#end

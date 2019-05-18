@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<head>
+    #parse("/templates/macros.vm")
+    #resources("圆圆满满", "true")
+</head>
+<script type="application/javascript">
+
+webix.ready(function(){
+
+    var menuConfig = {
+        view: "sidemenu",
+        id: "menu",
+        width: 200,
+        position: "right",
+        body:{
+            view:"list",
+            borderless:true,
+            scroll: false,
+            template: "<span class='webix_icon mdi mdi-#icon#'></span> #value#",
+            data:[
+                {id: 1, value: "Customers", icon: "account"},
+                {id: 2, value: "Products", icon: "cube"},
+                {id: 3, value: "Reports", icon: "chart-bar"},
+                {id: 4, value: "Archives", icon: "database"},
+                {id: 5, value: "Settings", icon: "cogs"}
+            ],
+            select:true,
+            type:{
+                height: 40
+            }
+        }
+    };
+
+    var topbar={
+        view:"toolbar",
+        css:"webix_dark",
+        height:44,
+        cols: [
+            { view:"button", type:"icon", icon:"mdi mdi-clipboard-pulse-outline", width:24},
+            { view:"label", label:"Circleman System Software<sub class='version_string'>1.0.0</sub>", width: 300},
+            { },
+            { view:"button", type:"icon", id:"btn", badge: 5, icon:"mdi mdi-access-point", width: 42},
+            {
+                view: "icon", icon: "mdi mdi-menu",
+                click: function(){
+
+                    if(menu == null){
+                        menu = webix.ui(menuConfig);
+                    }
+
+                    if( menu.config.hidden){
+                        menu.show();
+                    }else
+                        menu.hide();
+                }
+            }
+        ]
+    };
+
+    var sidebar={
+        view: "sidebar",
+        css:"webix_dark",
+        collapsed: true,
+        data: [{id: "purchaseMgr", icon: "mdi mdi-light mdi-view-dashboard", value: "Lesson",  data:[{ id: "personalPurchase", icon: "mdi mdi-light mdi-view-dashboard", value: "课程1"},
+                { id: "orgnizationPurchase", icon: "mdi mdi-light mdi-view-dashboard", value: "lesson2"},
+            ]},{id: "purchaseMgr1", icon: "mdi mdi-light mdi-view-dashboard", value: "Lesson",  data:[{ id: "personalPurchase", icon: "mdi mdi-light mdi-view-dashboard", value: "课程2"},
+                { id: "orgnizationPurchase1", icon: "mdi mdi-light mdi-view-dashboard", value: "lesson2"},
+            ]}
+        ],
+        afterSelect: function(id){
+            webix.message("Selected: "+this.getItem(id).value+"("+id+")");
+        }
+    };
+
+    var toolbar={
+        view:"toolbar",
+        height:44,
+        cols: [
+            { },
+
+            { view:"select", options:[{id:"name", value:"名称"}, {id:"code", value:"编码"}], width:80},
+            { view:"search", placeholder:"输入条件...", width: 250 },
+            { view:"button", autowidth:true, value: "重置"},
+
+            { view:"button", autowidth:true, value: "新增", type:"icon", id:"help", icon:"mdi mdi-access-point", width: 24},
+        ]
+    };
+
+    var tree= {
+        view : "tree",
+        select : true,
+        borderless : true,
+        url: "/region/tree"
+    };
+
+var grid={
+    view:"datatable",
+    headermenu: true,
+    id:"grid",
+    columns:[
+        {id:"code", header: "编码",  fillspace: 1, sort:"server"},
+        {id:"level", header: "层级",  fillspace: 1},
+        {id:"name", header: "名称",  fillspace: 1, sort:"server"},
+        {id:"parent", header: "上级",  fillspace: 1}
+    ],
+
+    select:"row",
+    navigation:false,
+    scrollX: false,
+    scrollY: false,
+    pager:"gridPager",
+    //url: "gridProxy->/region/list",
+    ready:function(){ webix.delay(update_page_size, this);},
+    resize:function(nw,nh,ow,oh){if(oh && oh != nh) webix.delay(update_page_size,this);}
+};
+
+var gridPager ={
+    view:"pager",
+    id:"gridPager",
+    template: "{common.first()} {common.prev()} {common.pages()} {common.next()} {common.last()}",
+};
+
+var form={
+    view:"form",
+    id:"form",
+    height: 1000,
+    elements:[
+        {view:'text',label:'编码',id:'form_code',type:'form'},
+        {view:'text',label:'层级',id:'form_level',type:'form'},
+        {view:'text',label:'名称',id:'form_name',type:'form'},
+        {view:'text',label:'上级',id:'form_parent',type:'form'},
+    ]};
+var chart = {
+    id: "chart",
+    view : "chart",
+    type : "bar",
+    value : "#count#",
+    label : "#dollars#",
+    //url: "/region/chart"
+};
+
+    #chart('ch1', 'line', 'dollars', 'count', '/chart', 5000);
+    #chart('ch2', 'line', 'dollars', 'count', '/chart', 5000);
+    #chart('ch3', 'line', 'dollars', 'count', '/chart', 5000);
+        #chart('ch4', 'bar', 'dollars', 'count', '/chart', 2500);
+        #chart('ch5', 'bar', 'dollars', 'count', '/chart', 2500);
+
+webix.ui({
+    "type":"line",
+    "rows":[
+        topbar,
+        {
+            "type":"clean",
+            id:"h",
+            "cols":[
+                sidebar,
+
+                {
+                    rows:[
+                        toolbar,
+                        {
+                            cols:[
+                                ch1,
+                                {type: "line",id: "g", gravity: 2,rows:[
+                                        {cols:[ch2, ch3]},
+                                        {cols:[ch4, ch5]}
+                                    ]}
+                                //{type: "line",id: "g", gravity: 4,rows:[ grid, gridPager ]}
+                                // ,
+                                // {
+                                //     id: "ss",type: "line", value: "tab", gravity: 2, view: "tabview", cells: [
+                                //         {header: "表单", body: form},
+                                //         {header: "图表", body: chart},
+                                //     ]
+                                // }
+                            ]
+                        }
+                    ]
+                }
+
+            ]
+        }
+    ]
+});
+
+// $$("grid").attachEvent("onItemClick", function(id, e, node){
+//     webix.message(id.row);
+//     //$$("h").removeView("ss");
+// });
+
+    webix.message({type: "info", text: "Groovy!粉丝"});
+});
+</script>
+<body>
+</body>
+</html>

@@ -1,0 +1,32 @@
+.webix_layout_toolbar.webix_toolbar.webix_dark {
+    background: #4A4E58;
+    border-color: #4A4E58;
+}
+
+.version_string {
+    font-size: xx-small;
+    font-style: italic;
+}
+
+.webix_view{ font-family: "Microsoft YaHei", serif; }
+
+.webix_toolbar{ font-family: "Microsoft YaHei UI", serif; }
+ { font-family: "Microsoft YaHei UI", serif; }
+
+.webixbutton {
+    font-family: "Microsoft YaHei UI", serif;
+}
+
+.mainFont {
+    font-family: "Microsoft YaHei UI", sans-serif;
+}
+.buttonFont {
+    font-family: "Microsoft YaHei UI", sans-serif;
+}
+.barFont {
+    font-family: "Microsoft YaHei UI", sans-serif;
+}
+
+.button {
+    font-family: "Microsoft YaHei UI", sans-serif;
+}

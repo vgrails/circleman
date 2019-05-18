@@ -1,0 +1,9 @@
+package ${PACKAGE_NAME}
+
+class ${CLASS_NAME}{
+    ${PROPERTIES}
+
+    static constraints = {
+        ${CONSTRAINTS}
+    }
+}
