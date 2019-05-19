@@ -17,10 +17,29 @@ class EnvConfig {
     static String TEST = "test"
     static String INTEGRATION = "integration"
     static String PRODUCTION = "production"
-    static Map<String, Object> config
+    private static Map<String, Object> config
 
     //日志相关
     static Logger log = LoggerFactory.getLogger(EnvConfig)
+
+    //配置默认值
+    static HashMap <String, Object> defaultConfigs =[
+            "framework.port" : 8080,
+            "framework.reflectionScan": "com.circleman",
+            "framework.app.name":"demo",
+            "framework.app.name":"Circleman演示系统",
+            "framework.app.version":"0.0.0",
+            "framework.threadPool.min":10,
+            "framework.threadPool.max":100,
+            "framework.threadPool.timeout":10,
+
+            "codegen.generateDomains":true,
+            "codegen.domainsPackage":"com.circleman.domains",
+            "codegen.overridden":false,
+
+            "hbm2ddl":"create-drop",
+            "database.url":"jdbc:h2:mem:demo"
+    ]
 
     /**
      * 加载系统配置
@@ -28,25 +47,48 @@ class EnvConfig {
     static synchronized void LoadConfig(){
 
         if(config == null) {
+            //--------------------------------------
+            //加载配置
+            //--------------------------------------
             try {
-                config = new ConfigSlurper("development").parse(new File("./src/main/resources/config/AppConfig.groovy").toURI().toURL()).flatten()
+                config = new ConfigSlurper(DEVELOPMENT).parse(new File("./src/main/resources/config/AppConfig.groovy").toURI().toURL()).flatten()
 
                 env = config.environment
 
-                if(env != 'development'){
+                if(env != DEVELOPMENT){
                     config = new ConfigSlurper(env).parse(new File("./src/main/resources/config/AppConfig.groovy").toURI().toURL()).flatten()
                 }
-
-                if(env != PRODUCTION) {
-                    log.info("App Config:\n ${JsonOutput.prettyPrint(new Gson().toJson(config))}")
-                }
             } catch (Exception e) {
-                log.error "环境加载异常，烦请检查：'/config/AppConfig.groovy'"
+                log.error "环境加载异常，检查：'/config/AppConfig.groovy'"
+            }
+
+            //--------------------------------------
+            //设定默认
+            //--------------------------------------
+            if(config == null) config =[:]
+            if(env == null) env = DEVELOPMENT
+
+            defaultConfigs.each{ String key, Object value ->
+                if(config[key]==[:]) config[key]=defaultConfigs[key]
+            }
+
+            if(env != PRODUCTION) {
+                log.info("App Config:\n ${JsonOutput.prettyPrint(new Gson().toJson(config))}")
             }
         }
     }
 
+    /**
+     * 获取配置
+     */
     static Object getConfig(String key){
-        return config[key]
+        Object result = config[key]
+
+        //空值处理
+        if(result == [:]){
+            result = null
+        }
+
+        return result
     }
 }

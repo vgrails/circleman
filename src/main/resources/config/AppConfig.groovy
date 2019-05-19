@@ -1,7 +1,6 @@
 environment = "development"
 
 framework {
-
     //运行端口
     port = 8080
 
@@ -24,13 +23,6 @@ framework {
     }
 }
 
-//database {
-//    url = ""
-//    username = ""
-//    password = ""
-//    hbm2ddl = ""
-//}
-
 codegen {
     //是否生成
     generateDomains = true
@@ -40,17 +32,22 @@ codegen {
     overridden = false
 }
 
+database {
+    hbm2ddl="create-drop"
+    url = "jdbc:h2:mem:demo"
 
+}
 
 //environments {
-//
 //    //生产
 //    production {
 //        database {
-//            url = ""
-//            username = ""
-//            password = ""
-//            hbm2ddl = "production"
+//            hbm2ddl = "update"
+//            dialect = 'org.hibernate.dialect.MySQL5InnoDBDialect'
+//            url = 'jdbc:mysql://localhost:3306/test?useSSL=false'
+//            driverClassName = 'com.mysql.jdbc.Driver'
+//            username: "test"
+//            password: "123456"
 //        }
 //    }
 //}
