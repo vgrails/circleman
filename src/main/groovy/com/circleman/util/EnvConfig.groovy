@@ -22,7 +22,7 @@ class EnvConfig {
     //日志相关
     static Logger log = LoggerFactory.getLogger(EnvConfig)
 
-    //配置默认值
+    //默认配置值表
     static HashMap <String, Object> defaultConfigs =[
             "framework.port" : 8080,
             "framework.reflectionScan": "com.circleman",
@@ -81,7 +81,7 @@ class EnvConfig {
     /**
      * 获取配置
      */
-    static Object getConfig(String key){
+    static Object GetConfig(String key){
         Object result = config[key]
 
         //空值处理

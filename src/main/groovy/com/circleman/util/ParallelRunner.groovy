@@ -7,12 +7,10 @@ import groovy.transform.CompileStatic
 /**
  * 并行任务执行工具
  */
-
-@CompileStatic
 class ParallelRunner {
 
     int elapseInseconds
-    BigDecimal operationPerSecond
+    BigInteger operationPerSecond
 
     void Run(int threadNum, int operationNum, Closure closure){
         List<Thread> threads = []
@@ -35,6 +33,6 @@ class ParallelRunner {
     }
 
     String toString(){
-        return "Elapsed:${elapseInseconds}s, OPS:${operationPerSecond}"
+        return "耗时:${elapseInseconds}s, 操作/秒:${operationPerSecond}"
     }
 }

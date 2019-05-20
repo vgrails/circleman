@@ -32,7 +32,7 @@ class Bootstrap extends BaseApp{
         initDomainDefaultAction()
 
 
-        log.info getConfig("framework.port").toString()
+        log.info GetConfig("framework.port").toString()
 
         log.info System.getProperty("user.dir")
 

@@ -1,40 +1,27 @@
 package com.circleman
 
 import com.circleman.core.MetaType
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
+
 import static spark.Spark.*
 
-class CirclemanIntegrationTest extends GroovyTestCase{
+class IntegrationTests {
 
-    void testInitialization(){
+    @BeforeAll
+    static void beforeAll(){
         Bootstrap.main()
-        List<MetaMethod> methods = this.metaClass.methods
-
-        int total=0
-        int success=0
-        int failure=0
-
-        for(int i=0;i<methods.size();i++){
-            if(methods[i].name.startsWith("测试")){
-
-                total++
-
-                try {
-                    log.info(">>>> ${methods[i].name}")
-                    new CirclemanIntegrationTest()."${methods[i].name}"()
-                    log.info("<<<< 正常结束")
-                    success++
-                }catch(Exception e){
-                    log.info("<<<< 异常结束")
-                    failure++
-                }
-            }
-        }
-        stop()
-
-        log.info("测试：${total}项 完成：${success} 异常：${failure}")
     }
 
-    void 测试MetaField1(){
+    @AfterAll
+    static void afterAll(){
+        stop()
+    }
+
+
+    @Test
+    void 随便测试1(){
 
         MetaType metaType = "STRING" as MetaType
         assert metaType.toString() == "STRING"
@@ -54,7 +41,8 @@ class CirclemanIntegrationTest extends GroovyTestCase{
         assert metaType.isNumberic() == false
     }
 
-    void 测试MetaField2(){
+    @Test
+    void test2(){
         MetaType metaType = "STRING" as MetaType
         assert metaType.toString() == "STRING"
         assert metaType.value == 3
