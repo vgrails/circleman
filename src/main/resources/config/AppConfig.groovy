@@ -21,21 +21,20 @@ framework {
         max = 100
         timeout = 10
     }
-}
 
-codegen {
-    //是否生成
-    generateDomains = true
-    //生成类的包名
-    domainsPackage = "com.circleman.domains"   //codegen模型的位置
-    //是否覆盖
-    overridden = false
+    codegen {
+        //是否生成
+        generateDomains = true
+        //生成类的包名
+        domainsPackage = "com.circleman.domains"   //codegen模型的位置
+        //是否覆盖
+        overridden = false
+    }
 }
 
 database {
     hbm2ddl="create-drop"
     url = "jdbc:h2:mem:demo"
-
 }
 
 //environments {

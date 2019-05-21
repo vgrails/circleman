@@ -1,15 +1,14 @@
 package com.circleman
 
 import com.circleman.core.BaseApp
-import com.circleman.core.MetaDomainBuilder
-import com.circleman.core.MetaDomain
+import com.circleman.meta.MetaDomainBuilder
+import com.circleman.meta.MetaDomain
 import com.circleman.core.MetaLayout
 import com.circleman.core.MetaLayoutBuilder
 import com.circleman.core.OrmCreate
 import com.circleman.core.OrmDelete
 import com.circleman.core.OrmQuery
 import com.circleman.core.MetaSearch
-import com.circleman.core.MetaType
 import com.circleman.core.OrmUpdate
 import com.circleman.domains.Employee
 import com.circleman.domains.Organization
@@ -25,71 +24,11 @@ class Bootstrap extends BaseApp{
 
     static void main(String[] args){
 
-        LoadConfig()
-        staticFiles.location("/assets")
-        port(8080)
-        initDatastore()
-        initDomainDefaultAction()
+        initialization()
 
-
-        log.info GetConfig("framework.port").toString()
+        log.info getConfig("framework.port").toString()
 
         log.info System.getProperty("user.dir")
-
-
-        MetaDomain metaOrganization=new MetaDomainBuilder().domain(name:"Organization", locale: "组织") {
-            field  name: 'name', locale: "名称"
-            field name: 'description', locale: "简介"
-        }
-
-        MetaDomain metaEmployee=new MetaDomainBuilder().domain(name:"Employee", locale: "员工") {
-            field name: 'name', locale: "姓名"
-            field name: 'description', locale: "简介"
-        }
-
-        MetaDomain metaArea=new MetaDomainBuilder().domain(name:"Area", locale: "区域") {
-            field name: 'name', locale: "名称"
-            field name: 'description', locale: "简介"
-            field name: 'parent', locale: "上级区域"
-        }
-
-
-        metaOrganization.GetMetaField('name')
-            .metaType(MetaType.STRING)
-            .min(2)
-            .max(32)
-            .blank(false)
-        metaOrganization.GetMetaField('description')
-            .metaType(MetaType.STRING)
-            .min(0)
-            .max(64)
-            .nullable(true)
-
-        metaEmployee.GetMetaField('name')
-            .metaType(MetaType.STRING)
-            .min(2)
-            .max(32)
-            .blank(false)
-        metaEmployee.GetMetaField('description')
-            .metaType(MetaType.STRING)
-            .min(0)
-            .max(64)
-            .nullable(true)
-
-        metaArea.GetMetaField('name')
-            .metaType(MetaType.STRING)
-            .min(2)
-            .max(32)
-            .blank(false)
-
-        metaArea.GetMetaField('description')
-            .metaType(MetaType.STRING)
-            .min(0)
-            .max(64)
-            .nullable(true)
-
-//        println metaDomainMap['Employee']
-//        println "current env: ${env}"
 
         Organization.withTransaction {
             for(int i=0;i<100;i++) {
@@ -122,47 +61,47 @@ class Bootstrap extends BaseApp{
 
 
         //ORM Testing
-        OrmQuery q = new OrmQuery().domain("Organization").max(20).offset(0)
-        q.search(new MetaSearch().op("eq").field("name").param1("研发1"))
-        println q.toHql()
-        q.search(new MetaSearch().op("eq").field("id").param1(2))
-        println q.toHql()
-
-
-        OrmUpdate u = new OrmUpdate().domain("Organization").id(1).attributes([name: "天上人间", description: "女神节日吧"])
-        println u.toHql()
-        println update(u)
-
-        List<Organization> results=query(new OrmQuery().domain("Organization").max(20).offset(0))
-
-        results.each{ Organization o ->
-            log.info "${o.name} ${o.description}"
-        }
-
-        log.info "create"
-        (create(new OrmCreate().domain("Organization").attributes([name: "天人", description: "节日"])).toString())
-
-        get "/chart", { Request request, Response response ->
-
-            List output = []
-            for(int i=0;i<5;i++){
-                int value = new Random().nextInt(100)
-                output.add([count: value, dollars: value, color: "#00FF00"])
-            }
-
-            println "result: ${output.size()}"
-            println output
-
-            json(output)
-        }
-
-        log.info count(new OrmQuery().domain("Organization")).toString()
-
-        for(long i=1;i<10;i++){
-            log.info delete(new OrmDelete().domain("Organization").id(i)).toString()
-        }
-
-        log.info count(new OrmQuery().domain("Organization")).toString()
+//        OrmQuery q = new OrmQuery().domain("Organization").max(20).offset(0)
+//        q.search(new MetaSearch().op("eq").field("name").param1("研发1"))
+//        println q.toHql()
+//        q.search(new MetaSearch().op("eq").field("id").param1(2))
+//        println q.toHql()
+//
+//
+//        OrmUpdate u = new OrmUpdate().domain("Organization").id(1).attributes([name: "天上人间", description: "女神节日吧"])
+//        println u.toHql()
+//        println update(u)
+//
+//        List<Organization> results=query(new OrmQuery().domain("Organization").max(20).offset(0))
+//
+//        results.each{ Organization o ->
+//            log.info "${o.name} ${o.description}"
+//        }
+//
+//        log.info "create"
+//        (create(new OrmCreate().domain("Organization").attributes([name: "天人", description: "节日"])).toString())
+//
+//        get "/chart", { Request request, Response response ->
+//
+//            List output = []
+//            for(int i=0;i<5;i++){
+//                int value = new Random().nextInt(100)
+//                output.add([count: value, dollars: value, color: "#00FF00"])
+//            }
+//
+//            println "result: ${output.size()}"
+//            println output
+//
+//            json(output)
+//        }
+//
+//        log.info count(new OrmQuery().domain("Organization")).toString()
+//
+//        for(long i=1;i<10;i++){
+//            log.info delete(new OrmDelete().domain("Organization").id(i)).toString()
+//        }
+//
+//        log.info count(new OrmQuery().domain("Organization")).toString()
 
 
 

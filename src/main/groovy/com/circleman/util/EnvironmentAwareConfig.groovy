@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
  *
  * @NOTE 必须先进行LoadConfig才可以使用getEnv, getConfig等操作
  */
-class EnvConfig {
+class EnvironmentAwareConfig {
     //环境相关
     static String env = null
     static String DEVELOPMENT = "development"
@@ -20,7 +20,7 @@ class EnvConfig {
     private static Map<String, Object> config
 
     //日志相关
-    static Logger log = LoggerFactory.getLogger(EnvConfig)
+    static Logger log = LoggerFactory.getLogger(EnvironmentAwareConfig)
 
     //默认配置值表
     static HashMap <String, Object> defaultConfigs =[
@@ -44,12 +44,10 @@ class EnvConfig {
     /**
      * 加载系统配置
      */
-    static synchronized void LoadConfig(){
+    static synchronized void initConfig(){
 
         if(config == null) {
-            //--------------------------------------
-            //加载配置
-            //--------------------------------------
+            //加载配置，如果环境与假设不匹配，需要重新加载
             try {
                 config = new ConfigSlurper(DEVELOPMENT).parse(new File("./src/main/resources/config/AppConfig.groovy").toURI().toURL()).flatten()
 
@@ -62,9 +60,7 @@ class EnvConfig {
                 log.error "环境加载异常，检查：'/config/AppConfig.groovy'"
             }
 
-            //--------------------------------------
             //设定默认
-            //--------------------------------------
             if(config == null) config =[:]
             if(env == null) env = DEVELOPMENT
 
@@ -81,7 +77,7 @@ class EnvConfig {
     /**
      * 获取配置
      */
-    static Object GetConfig(String key){
+    static Object getConfig(String key){
         Object result = config[key]
 
         //空值处理

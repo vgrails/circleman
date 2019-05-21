@@ -1,9 +1,9 @@
 package com.circleman.core
 
-import com.circleman.util.EnvConfig
+import com.circleman.meta.MetaDomain
+import com.circleman.util.EnvironmentAwareConfig
 import com.google.gson.Gson
 import grails.gorm.annotation.Entity
-import groovy.json.JsonOutput
 import org.grails.orm.hibernate.HibernateDatastore
 import org.reflections.Reflections
 import org.slf4j.Logger
@@ -16,40 +16,25 @@ import spark.Route
 import spark.template.velocity.VelocityTemplateEngine
 
 import static spark.Spark.get
+import static spark.Spark.port
+import static spark.Spark.staticFiles
 
-class BaseApp extends EnvConfig{
+class BaseApp extends EnvironmentAwareConfig{
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-    //静态工具相关
-    private static Gson gson = new Gson()
-    static HibernateDatastore datastore
-
-    private static VelocityTemplateEngine engine = new VelocityTemplateEngine()
-    //配置相关
-    private static Map config= null
-
-
-
+    //日志相关
+    static Logger log = LoggerFactory.getLogger(BaseApp)
 
     //ORM相关
     static Map<String, MetaDomain> metaDomainMap =[:]
     private static Set entities = []
     static Map<String, Object> clazzMap = [:]
 
-    //日志相关
-    static Logger log = LoggerFactory.getLogger(BaseApp)
+    //静态工具
+    private static Gson gson = new Gson()
+    static HibernateDatastore datastore
+    private static VelocityTemplateEngine engine = new VelocityTemplateEngine()
+
+
 
     def before(final Closure closure){
         spark.Spark.before(new Filter(){
@@ -358,5 +343,45 @@ class BaseApp extends EnvConfig{
         log.info domain
 
         return "Hello OrmService"
+    }
+
+    /**
+     * 初始化配置、模型和ORM
+     * @return
+     */
+    static boolean initialization(){
+        initConfig()
+
+        staticFiles.location("/assets")
+        port(getConfig("framework.port"))
+
+        initMetaModels()
+        initDatastore()
+        initDomainDefaultAction()
+    }
+
+    /**
+     * 加载元模型数据
+     * @return
+     */
+    static boolean initMetaModels(){
+        boolean output = true
+
+        try {
+            GroovyScriptEngine engine = new GroovyScriptEngine(".")
+            Class clazz = engine.loadScriptByName("./src/main/resources/config/MetaModels.groovy")
+            output = clazz.newInstance().initModel()
+        }catch(Exception e){
+            log.error("元数据(initMetaModels)加载异常: ${e.message}")
+        }
+
+        if(env != PRODUCTION) {
+            metaDomainMap.each { String name, MetaDomain domain ->
+                log.info ">>>> name: ${name}"
+                log.info domain.toString()
+            }
+        }
+
+        return output
     }
 }

@@ -1,5 +1,6 @@
 package com.circleman.core
 
+import com.circleman.meta.MetaDomain
 import groovy.transform.ToString
 import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
@@ -31,7 +32,7 @@ class OrmUpdate {
         MetaDomain metaDomain = metaDomainMap[domain]
 
         attributes.each{String field, Object value->
-            if(metaDomain.GetMetaField(field)==null){
+            if(metaDomain.getMetaField(field)==null){
                 log.debug("字段无效")
                 return false
             }
@@ -50,13 +51,13 @@ class OrmUpdate {
         MetaDomain metaDomain = metaDomainMap[domain]
         String hql="update from ${domain} set"
 
-        attributes.eachWithIndex{ String field, Object value, int index ->
-            MetaType type = metaDomain.GetMetaField(field).metaType
-
-            hql = "${hql} ${field} = :${field}"
-
-            if(index < attributes.size()-1) hql = "${hql},"
-        }
+//        attributes.eachWithIndex{ String field, Object value, int index ->
+//            MetaType type = metaDomain.getMetaField(field).metaType
+//
+//            hql = "${hql} ${field} = :${field}"
+//
+//            if(index < attributes.size()-1) hql = "${hql},"
+//        }
 
         hql = "${hql} where id=${id}"
 

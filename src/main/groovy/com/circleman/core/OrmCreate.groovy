@@ -1,5 +1,6 @@
 package com.circleman.core
 
+import com.circleman.meta.MetaDomain
 import groovy.transform.ToString
 import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
@@ -22,7 +23,7 @@ class OrmCreate {
         MetaDomain metaDomain = metaDomainMap[domain]
 
         attributes.each{String field, Object value->
-            if(metaDomain.GetMetaField(field)==null){
+            if(metaDomain.getMetaField(field)==null){
                 log.debug("字段无效")
                 return false
             }

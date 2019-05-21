@@ -57,3 +57,9 @@ dependencies {
     compile group: 'org.junit.jupiter', name: 'junit-jupiter', version: '5.5.0-M1'
     compile group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.5.0-M1'
 }
+
+test {
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter'
+    }
+}

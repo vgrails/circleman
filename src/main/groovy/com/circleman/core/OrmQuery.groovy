@@ -1,11 +1,10 @@
 package com.circleman.core
 
+import com.circleman.meta.MetaDomain
 import groovy.transform.ToString
 import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
 import static com.circleman.core.BaseApp.*
-import static com.circleman.core.BaseApp.clazzMap
-import static com.circleman.core.BaseApp.metaDomainMap
 
 @Builder(builderStrategy = SimpleStrategy,prefix = "")
 @ToString(ignoreNulls = true)
@@ -36,7 +35,7 @@ class OrmQuery {
 
 
         if(search != null) {
-            if (metaDomain.GetMetaField(search.field) == null) {
+            if (metaDomain.getMetaField(search.field) == null) {
                 log.debug("搜索的字段无效")
                 return false
             }
@@ -49,7 +48,7 @@ class OrmQuery {
 
 
         if(order!=null){
-            if(metaDomain.GetMetaField(order.field)==null){
+            if(metaDomain.getMetaField(order.field)==null){
                 log.debug("排序字段无效")
                 return false
             }
@@ -75,17 +74,17 @@ class OrmQuery {
 
             MetaDomain metaDomain = metaDomainMap[domain]
 
-            MetaType type = metaDomain.GetMetaField(search.field).metaType
-
-            if (type.isNumberic()) {
-                hql = "${hql} ${search.param1}"
-            } else if (type.toString() == "STRING") {
-                if (search.op == 'like') {
-                    hql = "${hql} \"%${search.param1}%\""
-                } else {
-                    hql = "${hql} \"${search.param1}\""
-                }
-            }
+//            MetaType type = metaDomain.getMetaField(search.field).metaType
+//
+//            if (type.isNumberic()) {
+//                hql = "${hql} ${search.param1}"
+//            } else if (type.toString() == "STRING") {
+//                if (search.op == 'like') {
+//                    hql = "${hql} \"%${search.param1}%\""
+//                } else {
+//                    hql = "${hql} \"${search.param1}\""
+//                }
+//            }
         }
 
         return hql
@@ -100,11 +99,12 @@ class OrmQuery {
 
             MetaDomain metaDomain = metaDomainMap[domain]
 
-            MetaType type = metaDomain.GetMetaField(search.field).metaType
+            String type = metaDomain.getMetaField(search.field).type
 
-            if (type.isNumberic()) {
+            //FIXME
+            if (true) {
                 hql = "${hql} ${search.param1}"
-            } else if (type.toString() == "STRING") {
+            } else if (false) {
                 if (search.op == 'like') {
                     hql = "${hql} \"%${search.param1}%\""
                 } else {

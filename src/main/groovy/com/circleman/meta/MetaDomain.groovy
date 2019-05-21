@@ -1,5 +1,4 @@
-package com.circleman.core
-
+package com.circleman.meta
 
 import groovy.transform.ToString
 import groovy.transform.builder.Builder
@@ -17,12 +16,12 @@ class MetaDomain{
     String pkg
     /** 翻译 */
     String locale
-    /** 属性 */
-    List<MetaField> fields = [new MetaField().metaType(MetaType.LONG).name("id")]
+    /** 属性 */ //["name", "type", "locale", "flex", "widget", "nullable", "validator", "defaulted"]
+    List<MetaField> fields = [new MetaField().type("long").name("id").locale("编号").flex(1)]
     /** 排序 */
-    List<String> sortable = []
+    Set<String> sortable = []
     /** 搜索 */
-    List<String> searchable = []
+    Set<String> searchable = []
     /** 关系 */
     Set<String> associations = []
 
@@ -33,7 +32,7 @@ class MetaDomain{
      * @param name
      * @return
      */
-    synchronized MetaField GetMetaField(String name){
+    synchronized MetaField getMetaField(String name){
         if(fieldsMap.size()==0){
             for(MetaField f in fields){
                 fieldsMap[f.name]=f
