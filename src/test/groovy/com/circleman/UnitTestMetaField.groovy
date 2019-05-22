@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test
 
 import java.text.SimpleDateFormat
 
-class 单元测试MetaField {
+class UnitTestMetaField {
 
     @BeforeEach
     void Init(){
@@ -177,7 +177,7 @@ class 单元测试MetaField {
     }
 
     @Test
-    void 异常_获取不存在(){
+    void 异常_空转换(){
         println new MetaField().toString()
         println new MetaField().toField()
         println new MetaField().toConstraint()
@@ -186,7 +186,7 @@ class 单元测试MetaField {
     @Test
     void 并发_使用MetaField(){
         ParallelRunner runner=new ParallelRunner()
-        runner.Run(4,1000, {int threadId, operationId->
+        runner.Run(4,100000, {int threadId, operationId->
             MetaField metaField = new MetaField(name: "name", locale: "名称")
             metaField.with {
                 type("String")

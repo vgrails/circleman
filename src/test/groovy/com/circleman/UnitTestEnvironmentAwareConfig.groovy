@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 
 import static com.circleman.util.EnvironmentAwareConfig.*
 
-class 单元测试EnvironmentAwareConfig {
+class UnitTestEnvironmentAwareConfig {
 
     @BeforeEach
     void Init(){

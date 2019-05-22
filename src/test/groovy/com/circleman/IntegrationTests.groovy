@@ -5,12 +5,13 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
 import static spark.Spark.*
-
+import static com.circleman.Bootstrap.*
 class IntegrationTests {
 
     @BeforeAll
     static void beforeAll(){
         Bootstrap.main()
+        Bootstrap.env = DEVELOPMENT
     }
 
     @AfterAll

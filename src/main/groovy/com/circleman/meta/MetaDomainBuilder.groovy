@@ -19,8 +19,21 @@ class MetaDomainBuilder extends BuilderSupport{
      * @param child 子
      */
     protected void setParent(Object parent, Object child) {
-            if(parent instanceof MetaDomain){
-                parent.fields << child
+            if(parent instanceof MetaDomain && child instanceof MetaField){
+                boolean duplicated = false
+
+                for(MetaField f in parent.fields){
+                    if(child.name == f.name){
+                        duplicated = true
+                        break
+                    }
+                }
+
+                if(duplicated){
+                    log.error "出现重名属性:${child.name}"
+                }else {
+                    parent.fields << child
+                }
             }else{
                 log.error "非法的层次结构 ${parent} ${child}"
             }
