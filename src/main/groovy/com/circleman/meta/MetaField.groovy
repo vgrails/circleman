@@ -3,8 +3,12 @@ package com.circleman.meta
 import groovy.transform.ToString
 import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
+import org.hibernate.boot.model.relational.SimpleAuxiliaryDatabaseObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+import java.text.SimpleDateFormat
+
 import static com.circleman.core.BaseApp.*
 import java.util.regex.Pattern
 
@@ -21,8 +25,33 @@ class MetaField implements GroovyInterceptable{
 
     //类型匹配表
     static private Set<String> numbericSet = ["byte", "short", "int", "long", "float", "double", "Integer", "Float", "Double"]
-    static private Set<String> booleanSet = ["boolean", "Boolean"]
-    static private Set<String> characterSet = ['char', 'String']
+
+    //数据类型允许约束映射表
+    final static private Set<String> commons =["name", "type", "locale", "flex", "widget", "nullable", "initial"]
+    final static private Set<String> numbers =["min", "max", "unique"]
+    final static private Set<String> decimals =["decimalSize"]
+
+    final static private Map<String, Set<String>> typeConstraintSets=[
+        byte:       commons + numbers,
+        short:      commons + numbers,
+        int:        commons + numbers,
+        Integer:    commons + numbers,
+        long:       commons + numbers,
+        Long:       commons + numbers,
+        float:      commons + numbers + decimals,
+        Float:      commons + numbers + decimals,
+        double:     commons + numbers + decimals,
+        Double:     commons + numbers + decimals,
+        boolean:    commons ,
+        Boolean:    commons ,
+        char:       commons + ["min", "max", "inList", "unique"],
+        String:     commons + ["min", "max", "unique", "blank", "email", "mobile", "mask", "inList", "matches"],
+        Date:       commons + ["format", "min", "max", "unique"]
+    ]
+
+    final static private Set<String> defaultOutputConstraints =["nullable", "unique"]
+
+    static private Set<String> constraintSets=[]
 
     /** 名称 */
     String name
@@ -32,32 +61,6 @@ class MetaField implements GroovyInterceptable{
     String locale
     /** 表格占比 */
     int flex=1
-
-    //数据类型允许约束映射表
-    final static private Set<String> commonConstraints=["name", "type", "locale", "flex", "widget", "nullable", "validator", "initial"]
-    final static private Set<String> numberConstraints=["min", "max", "unique"]
-    final static private Set<String> decimalConstraints=["decimalSize"]
-
-    final static private Map<String, Set<String>> typeConstraintSets=[
-        byte:       commonConstraints + numberConstraints,
-        short:      commonConstraints + numberConstraints,
-        int:        commonConstraints + numberConstraints,
-        long:       commonConstraints + numberConstraints,
-        Integer:    commonConstraints + numberConstraints,
-        float:      commonConstraints + numberConstraints + decimalConstraints,
-        Float:      commonConstraints + numberConstraints + decimalConstraints,
-        double:     commonConstraints + numberConstraints + decimalConstraints,
-        Double:     commonConstraints + numberConstraints + decimalConstraints,
-        boolean:    commonConstraints + ["widget"],
-        Boolean:    commonConstraints + ["widget"],
-        char:       commonConstraints + ["min", "max", "inList", "unique"],
-        String:     commonConstraints + ["min", "max", "unique", "blank", "email", "mobile", "mask", "inList", "matches"],
-        Date:       commonConstraints + ["format", "min", "max", "unique", "inList"]
-    ]
-
-    final static private Set<String> domainOutputConstraints =["nullable", "unique"]
-
-    static private Set<String> constraintSets=[]
 
     /** 控件 */
     String widget
@@ -87,10 +90,6 @@ class MetaField implements GroovyInterceptable{
     Pattern matches
     /** 唯一 */
     Boolean unique
-    /** 校验(是否提供值校验) */
-    Boolean validator
-    /** 默认(是否提供默认值生成) */
-    Boolean initial
 
     boolean isNumberic(){
         if(type in numbericSet){
@@ -100,24 +99,8 @@ class MetaField implements GroovyInterceptable{
         return false
     }
 
-    boolean isBoolean(){
-        if(type in booleanSet){
-            return true
-        }
-
-        return false
-    }
-
-    boolean isCharacter(){
-        if(type in characterSet){
-            return true
-        }
-
-        return false
-    }
-
     /**
-     * 校验约束和值是否合法，自动将无效的属性置空
+     * 校验约束和值是否合法，自动将无效的属性置空，并自动给与默认值
      * @return
      */
     synchronized boolean validate(){
@@ -128,12 +111,9 @@ class MetaField implements GroovyInterceptable{
             typeConstraintSets.values().each{ Set<String> values->
                 constraintSets.addAll(values)
             }
-
-            log.info constraintSets.toString()
         }
 
         Set<String> notAllowedAttributes = []
-
 
         //------------------------------------------------------
         // 是否存在不合法约束 （不合法约束 = 全量约束 - 合法约束)
@@ -151,11 +131,9 @@ class MetaField implements GroovyInterceptable{
         //------------------------------------------------------
         // 是否存在不合法参数值
         if(flex <= 0 || flex >= 8){
-            flex = 1
-
             log.error "元属性:${name}.flex:${flex}不合法"
-
             output = false
+            flex = 1
         }
 
         //默认使用属性名
@@ -166,31 +144,54 @@ class MetaField implements GroovyInterceptable{
         }
 
         if(inList){
-            inList.each{ Object value ->
-                if(value.class.simpleName != type){
+            for(Object value in inList) {
+                if(type == "int" && this[attr].class.simpleName == "Integer") continue
+                if(type == "long" && this[attr].class.simpleName == "Long") continue
+                if(type == "float" && this[attr].class.simpleName == "Float") continue
+                if(type == "double" && this[attr].class.simpleName == "Double") continue
+
+                if (value.class.simpleName != type) {
                     log.error "元属性:${name}.inList:${inList}不合法"
-                    return
+                    output = false
                 }
             }
+        }
 
-            if(output == false){
-                inList = null
+        if((type in ['Boolean', 'boolean'])==false) {
+            for (String attr in ["min", "max"]) {
+                if (attr == null) continue
+
+                if(type == "int" && this[attr].class.simpleName == "Integer") continue
+                if(type == "long" && this[attr].class.simpleName == "Long") continue
+                if(type == "float" && this[attr].class.simpleName == "Float") continue
+                if(type == "double" && this[attr].class.simpleName == "Double") continue
+
+                if ((type == "String" && this[attr].class.simpleName != "Integer") || (this[attr].class.simpleName != type && type != "String")) {
+                    log.error "元属性:${name}.${attr}:${this[attr]}类型不合法"
+                    output = false
+                }
             }
         }
 
-        if(min != null) {
-            if((type == "String" && min.class.simpleName != "Integer") || (min.class.simpleName != type && type != "String")){
-                log.error "元属性:${name}.min:${min}不合法"
+        if(min > max){
+            log.error "元属性:${name} min > max值不合法"
+            output = false
+
+            min = null
+            max = null
+        }
+
+        //日期格式校验
+        if(type == "Date" && format != null){
+            try {
+                new SimpleDateFormat(format)
+            }catch(Exception e){
+                log.error "元属性:${name}.format:${format}值不合法"
                 output = false
             }
         }
 
-        if(max != null) {
-            if((type == "String" && max.class.simpleName != "Integer") || (max.class.simpleName != type && type != "String")){
-                log.error "元属性:${name}.max:${max}不合法"
-                output = false
-            }
-        }
+        //format, max/min, decimalSize
 
         return output
     }
@@ -200,7 +201,12 @@ class MetaField implements GroovyInterceptable{
      * @return
      */
     String toField(){
-        return "${type} ${name}"
+        if(type || name){
+            return "${type} ${name}"
+        }else{
+            log.error "元属性:type, name未设定"
+            return null
+        }
     }
 
     /**
@@ -208,17 +214,29 @@ class MetaField implements GroovyInterceptable{
      * @return
      */
     String toConstraint(){
-        String output = "${name} "
+        if(!name){
+            log.error "元属性:name未设定"
+            return null
+        }
 
-        domainOutputConstraints.eachWithIndex{String c, int index ->
-            if(this[c]!= null) {
-                output += "${c}:${this[c]}"
-                output += ", "
+        String output = "${name} "
+        List<String> outputConstraints = []
+
+        defaultOutputConstraints.each{ String c->
+            if(this[c]!=null){
+                outputConstraints.add(c)
             }
         }
 
-        //移除末尾的", "
-        output = output[0..-3]
+        outputConstraints.eachWithIndex{ String c, int index ->
+            if(this[c]!= null) {
+                output += "${c}:${this[c]}"
+
+                if(index < (outputConstraints.size()-1)) {
+                    output += ", "
+                }
+            }
+        }
 
         return output
     }
