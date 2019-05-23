@@ -10,7 +10,7 @@ import groovy.util.logging.Slf4j
  */
 @Builder(builderStrategy = SimpleStrategy,prefix = "")
 @ToString(includeNames = true)
-@Slf4j
+@Slf4j(category = "MetaDomain")
 class MetaDomain{
     /** 名称 */
     String name
@@ -79,6 +79,14 @@ class MetaDomain{
         for(MetaField f in fields){
             output = f.validate()
         }
+
+        return output
+    }
+
+    synchronized String generateDomain(){
+        String output=""
+
+
 
         return output
     }

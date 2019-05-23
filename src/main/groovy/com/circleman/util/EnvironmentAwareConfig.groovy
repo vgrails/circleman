@@ -2,6 +2,7 @@ package com.circleman.util
 
 import com.google.gson.Gson
 import groovy.json.JsonOutput
+import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory
  *
  * @NOTE 必须先进行LoadConfig才可以使用getEnv, getConfig等操作
  */
+@Slf4j(category = "EnvironmentAwareConfig")
 class EnvironmentAwareConfig {
     //环境相关
     static String env = null

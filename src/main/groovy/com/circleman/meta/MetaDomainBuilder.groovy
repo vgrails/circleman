@@ -2,6 +2,7 @@ package com.circleman.meta
 
 import com.circleman.core.BaseApp
 import groovy.transform.ToString
+import groovy.util.logging.Slf4j
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -9,10 +10,8 @@ import org.slf4j.LoggerFactory
  * 模型元数据构建器
  */
 @ToString(includeNames = true, ignoreNulls = true)
+@Slf4j(category = "MetaDomainBuilder")
 class MetaDomainBuilder extends BuilderSupport{
-    //日志相关
-    static Logger log = LoggerFactory.getLogger(MetaDomainBuilder)
-
     /**
      * 创建层次结构
      * @param parent 父

@@ -2,11 +2,12 @@ package com.circleman.util
 
 import groovy.time.TimeCategory
 import groovy.time.TimeDuration
-import groovy.transform.CompileStatic
+import groovy.util.logging.Slf4j
 
 /**
  * 并行任务执行工具
  */
+@Slf4j(category = "ParallelRunner")
 class ParallelRunner {
 
     int elapseInseconds

@@ -4,6 +4,7 @@ import com.circleman.meta.MetaDomain
 import com.circleman.util.EnvironmentAwareConfig
 import com.google.gson.Gson
 import grails.gorm.annotation.Entity
+import groovy.util.logging.Slf4j
 import org.grails.orm.hibernate.HibernateDatastore
 import org.reflections.Reflections
 import org.slf4j.Logger
@@ -19,11 +20,8 @@ import static spark.Spark.get
 import static spark.Spark.port
 import static spark.Spark.staticFiles
 
+@Slf4j(category = "BaseApp")
 class BaseApp extends EnvironmentAwareConfig{
-
-    //日志相关
-    static Logger log = LoggerFactory.getLogger(BaseApp)
-
     //ORM相关
     static Map<String, MetaDomain> metaDomainMap =[:]
     private static Set entities = []

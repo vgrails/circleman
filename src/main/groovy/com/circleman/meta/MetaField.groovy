@@ -3,6 +3,7 @@ package com.circleman.meta
 import groovy.transform.ToString
 import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
+import groovy.util.logging.Slf4j
 import org.hibernate.boot.model.relational.SimpleAuxiliaryDatabaseObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -18,11 +19,8 @@ import java.util.regex.Pattern
 
 @Builder(builderStrategy = SimpleStrategy,prefix = "")
 @ToString(includeNames = true, ignoreNulls = true)
+@Slf4j(category = "MetaField")
 class MetaField implements GroovyInterceptable{
-
-    //日志相关
-    static private Logger log = LoggerFactory.getLogger(MetaField)
-
     //类型匹配表
     static private Set<String> numbericSet = ["byte", "short", "int", "long", "float", "double", "Integer", "Float", "Double"]
 
