@@ -27,7 +27,7 @@ class MetaField implements GroovyInterceptable{
     static private Set<String> numbericSet = ["byte", "short", "int", "long", "float", "double", "Integer", "Float", "Double"]
 
     //数据类型允许约束映射表
-    final static private Set<String> commons =["name", "type", "locale", "flex", "widget", "nullable", "initial"]
+    final static private Set<String> commons =["name", "type", "locale", "flex", "widget", "nullable"]
     final static private Set<String> numbers =["min", "max", "unique"]
     final static private Set<String> decimals =["decimalSize"]
 
@@ -45,7 +45,7 @@ class MetaField implements GroovyInterceptable{
         boolean:    commons ,
         Boolean:    commons ,
         char:       commons + ["min", "max", "inList", "unique"],
-        String:     commons + ["min", "max", "unique", "blank", "email", "mobile", "mask", "inList", "matches"],
+        String:     commons + ["min", "max", "unique", "email", "mobile", "mask", "inList", "matches"],
         Date:       commons + ["format", "min", "max", "unique"]
     ]
 
@@ -138,19 +138,19 @@ class MetaField implements GroovyInterceptable{
 
         //默认使用属性名
         if(!locale){
-            log.error "元属性:${name}.locale:${locale}不合法"
+            log.warn "元属性:${name}.locale:${locale}未设置"
             locale = name
             output = false
         }
 
         if(inList){
-            for(Object value in inList) {
+            for(Object attr in inList) {
                 if(type == "int" && this[attr].class.simpleName == "Integer") continue
                 if(type == "long" && this[attr].class.simpleName == "Long") continue
                 if(type == "float" && this[attr].class.simpleName == "Float") continue
                 if(type == "double" && this[attr].class.simpleName == "Double") continue
 
-                if (value.class.simpleName != type) {
+                if (attr.class.simpleName != type) {
                     log.error "元属性:${name}.inList:${inList}不合法"
                     output = false
                 }
@@ -159,7 +159,7 @@ class MetaField implements GroovyInterceptable{
 
         if((type in ['Boolean', 'boolean'])==false) {
             for (String attr in ["min", "max"]) {
-                if (attr == null) continue
+                if (this[attr] == null) continue
 
                 if(type == "int" && this[attr].class.simpleName == "Integer") continue
                 if(type == "long" && this[attr].class.simpleName == "Long") continue

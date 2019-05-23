@@ -3,12 +3,14 @@ package com.circleman.meta
 import groovy.transform.ToString
 import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
+import groovy.util.logging.Slf4j
 
 /**
  * 模型元数据
  */
 @Builder(builderStrategy = SimpleStrategy,prefix = "")
 @ToString(includeNames = true)
+@Slf4j
 class MetaDomain{
     /** 名称 */
     String name
@@ -16,12 +18,12 @@ class MetaDomain{
     String pkg
     /** 翻译 */
     String locale
-    /** 属性 */ //["name", "type", "locale", "flex", "widget", "nullable", "validator", "defaulted"]
+    /** 属性 */
     List<MetaField> fields = [new MetaField().type("long").name("id").locale("编号").flex(1)]
     /** 排序 */
     Set<String> sortable = []
     /** 搜索 */
-    Set<String> searchable = []
+    List<String> searchable = []
     /** 关系 */
     Set<String> associations = []
 
@@ -40,5 +42,44 @@ class MetaDomain{
         }
 
         return fieldsMap[name]
+    }
+
+    synchronized boolean validate(){
+        boolean output = true
+
+        if(name == null || name.size()==0){
+            log.error "模型属性:name未设置"
+            output = false
+        }
+
+        if(pkg == null || pkg.size()==0){
+            log.error "模型${name}属性:pkg未设置"
+            output = false
+        }
+
+        //默认使用属性名
+        if(!locale) {
+            log.warn "模型${name}属性:locale:未设置"
+            locale = name
+            output = false
+        }
+
+        //属性检查
+        Set<String> fieldNames = fields*.name
+        if(fieldNames.size() < fields.size()){
+            log.error "模型属性名称出现重名"
+            output = false
+        }
+
+        if(fieldNames.contains('id') == false){
+            log.error "模型未包含id属性"
+            output = false
+        }
+
+        for(MetaField f in fields){
+            output = f.validate()
+        }
+
+        return output
     }
 }

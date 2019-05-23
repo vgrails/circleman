@@ -2,7 +2,6 @@ package com.circleman
 
 import com.circleman.meta.MetaDomain
 import com.circleman.meta.MetaDomainBuilder
-import com.circleman.meta.MetaField
 import com.circleman.util.ParallelRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -17,12 +16,12 @@ class UnitTestMetaDomain {
 
     @Test
     void 正常_基础功能MetaDomain(){
-        MetaDomain metaOrganization = new MetaDomainBuilder().domain(name: "Organization", locale: "组织") {
+        MetaDomain metaOrganization = new MetaDomainBuilder().domain(name: "Organization", locale: "组织", pkg: "com.circleman") {
             field name: 'name', locale: "名称", type: "String"
             field name: 'description', locale: "简介", type:"String"
         }
 
-        MetaDomain metaEmployee = new MetaDomainBuilder().domain(name: "Employee", locale: "员工") {
+        MetaDomain metaEmployee = new MetaDomainBuilder().domain(name: "Employee", locale: "员工", pkg: "com.circleman") {
             field name: 'name', locale: "姓名", type: "String"
             field name: 'gender', locale: "性别", type: "boolean"
             field name: 'age', locale: "年龄", type: "int"
@@ -41,11 +40,12 @@ class UnitTestMetaDomain {
         assert metaEmployee.fields[2].type == "boolean"
         assert metaEmployee.fields[3].type == "int"
         assert metaEmployee.fields[4].type == "Date"
+        assert metaEmployee.validate() == true
     }
 
     @Test
     void 异常_异常约束和值(){
-        MetaDomain metaOrganization = new MetaDomainBuilder().domain(name: "Organization", locale: "组织") {
+        MetaDomain metaOrganization = new MetaDomainBuilder().domain(name: "Organization", locale: "组织", pkg: "com.circleman") {
             field name: 'name', locale: "名称", type: "String"
             field name: 'name', locale: "简介", type:"String"
         }
@@ -62,7 +62,7 @@ class UnitTestMetaDomain {
 
             String domain = "Employee${threadId}_${operationId}"
 
-            MetaDomain metaEmployee = new MetaDomainBuilder().domain(name: domain, locale: "员工") {
+            MetaDomain metaEmployee = new MetaDomainBuilder().domain(name: domain, locale: "员工", pkg: "com.circleman") {
                 field name: 'name', locale: "姓名", type: "String"
                 field name: 'gender', locale: "性别", type: "boolean"
                 field name: 'age', locale: "年龄", type: "int"

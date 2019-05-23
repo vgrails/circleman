@@ -4,6 +4,7 @@ framework {
     //运行端口
     port = 8080
 
+    debug = false
     //反射扫描位置
     reflectionScan = "com.circleman"    //reflections的扫描起点
 
