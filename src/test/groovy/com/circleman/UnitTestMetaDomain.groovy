@@ -6,8 +6,6 @@ import com.circleman.util.ParallelRunner
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-import java.text.SimpleDateFormat
-
 class UnitTestMetaDomain {
 
     @BeforeEach
@@ -30,6 +28,10 @@ class UnitTestMetaDomain {
 
         println metaOrganization.toString()
         println metaEmployee.toString()
+
+        println "==================================="
+        println metaOrganization.toDomain()
+        println "==================================="
 
         assert metaOrganization.fields.size() == 3
         assert metaOrganization.fields[1].type == "String"

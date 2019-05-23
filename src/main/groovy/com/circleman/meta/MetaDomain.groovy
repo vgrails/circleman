@@ -83,11 +83,32 @@ class MetaDomain{
         return output
     }
 
-    synchronized String generateDomain(){
-        String output=""
+    synchronized String toDomain(){
+        String attributesDefinition = ""
+        String constraintsDefinition = ""
+        String imports = ""
 
+        for(MetaField f in fields){
+            if(f.name == 'id') continue
+            attributesDefinition +=f.toField() + "\n"
+            constraintsDefinition +=f.toConstraint() + "\n"
+        }
 
+        String output="""
+package ${pkg}
+${imports}
 
-        return output
+/**
+${locale}
+*/
+@Entity
+class ${name} implements GormEntity<${name}>{
+${attributesDefinition}
+    static constraints = {
+${constraintsDefinition}
+    }
+}
+    """
+    return output
     }
 }

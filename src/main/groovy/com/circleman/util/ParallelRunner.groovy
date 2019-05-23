@@ -9,7 +9,6 @@ import groovy.util.logging.Slf4j
  */
 @Slf4j(category = "ParallelRunner")
 class ParallelRunner {
-
     int elapseInseconds
     BigInteger operationPerSecond
 

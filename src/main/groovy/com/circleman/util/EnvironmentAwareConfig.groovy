@@ -21,9 +21,6 @@ class EnvironmentAwareConfig {
     static String PRODUCTION = "production"
     private static Map<String, Object> config
 
-    //日志相关
-    static Logger log = LoggerFactory.getLogger(EnvironmentAwareConfig)
-
     //默认配置值表
     static HashMap <String, Object> defaultConfigs =[
             "framework.port" : 8080,

@@ -200,7 +200,7 @@ class MetaField implements GroovyInterceptable{
      */
     String toField(){
         if(type || name){
-            return "${type} ${name}"
+            return "    ${type} ${name}"
         }else{
             log.error "元属性:type, name未设定"
             return null
@@ -217,7 +217,7 @@ class MetaField implements GroovyInterceptable{
             return null
         }
 
-        String output = "${name} "
+        String output = "       ${name} "
         List<String> outputConstraints = []
 
         defaultOutputConstraints.each{ String c->
