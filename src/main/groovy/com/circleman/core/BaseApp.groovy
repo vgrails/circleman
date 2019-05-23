@@ -375,12 +375,12 @@ class BaseApp extends EnvironmentAwareConfig{
             log.error("元数据(initMetaModels)加载异常: ${e.message}")
         }
 
-//        if(env == DEVELOPMENT) {
-//            metaDomainMap.each { String name, MetaDomain domain ->
-//                log.info ">>>> name: ${name}"
-//                log.info domain.toString()
-//            }
-//        }
+        if(env == DEVELOPMENT && getConfig("frameowork.debug")==true) {
+            metaDomainMap.each { String name, MetaDomain domain ->
+                log.info ">>>> name: ${name}"
+                log.info domain.toString()
+            }
+        }
 
         return output
     }

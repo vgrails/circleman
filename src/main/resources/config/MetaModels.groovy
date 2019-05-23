@@ -3,12 +3,12 @@ import com.circleman.meta.MetaDomainBuilder
 
 class MetaModel {
     static boolean initModel() {
-        MetaDomain metaOrganization = new MetaDomainBuilder().domain(name: "Organization", locale: "组织") {
+        MetaDomain metaOrganization = new MetaDomainBuilder().domain(name: "Organization", locale: "组织", pkg: "com.circleman") {
             field name: 'name', locale: "名称"
             field name: 'description', locale: "简介"
         }
 
-        MetaDomain metaEmployee = new MetaDomainBuilder().domain(name: "Employee", locale: "员工") {
+        MetaDomain metaEmployee = new MetaDomainBuilder().domain(name: "Employee", locale: "员工", pkg: "com.circleman") {
             field name: 'name', locale: "姓名"
             field name: 'description', locale: "简介"
         }

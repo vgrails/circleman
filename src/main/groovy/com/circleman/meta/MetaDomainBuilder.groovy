@@ -44,7 +44,7 @@ class MetaDomainBuilder extends BuilderSupport{
      * @param name 创建类型
      * @param attributes 创建参数
      */
-    protected Object createNode(Object name, Map attributes) {
+    synchronized protected Object createNode(Object name, Map attributes) {
         if(attributes == null || attributes.size() == 0 || attributes["name"]==null){
             log.error "非法的模型构建参数: ${attributes}"
         }else {
