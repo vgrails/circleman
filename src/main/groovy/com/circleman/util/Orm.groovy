@@ -3,11 +3,14 @@ package com.circleman.util
 import com.circleman.core.BaseApp
 import com.circleman.meta.MetaDomain
 import com.circleman.meta.MetaField
+import grails.gorm.transactions.Transactional
 import groovy.transform.ToString
 import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
 import groovy.util.logging.Slf4j
 import static com.circleman.Bootstrap.*
+import com.circleman.domains.TestNumberic
+
 
 @Builder(builderStrategy = SimpleStrategy,prefix = "")
 @ToString(includeNames = true)
@@ -17,8 +20,6 @@ import static com.circleman.Bootstrap.*
  */
 class Orm {
 
-    /** 操作类型 */
-    String type
     /** 模型 */
     String domain
     /** 属性 create, update */
@@ -58,12 +59,12 @@ class Orm {
     ]
 
     static Map<String, Set<String>> allowedAttributes = [
-        count: ["type","domain", "expr"],
-        query: ["type","domain", "expr", "max", "offset", "orderField", "orderDirection"],
-        create: ["type","domain", "attributes"],
-        update: ["type","domain", "attributes", "id"],
-        delete: ["type","domain", "id"],
-        get:["type", "domain", "id"]
+        count: ["domain", "filterField", "filterOp", "p1", "p2"],
+        query: ["domain", "filterField", "filterOp", "p1", "p2", "max", "offset", "orderField", "orderDirection"],
+        create: ["domain", "attributes"],
+        update: ["domain", "attributes", "id"],
+        delete: ["domain", "id"],
+        get:["domain", "id"]
     ]
 
     static Set<String> allAttributes = []
@@ -72,7 +73,7 @@ class Orm {
      * 参数校验
      * @return
      */
-    synchronized boolean validate(){
+    synchronized boolean validate(String type){
         boolean output = true
 
         if(!type && allowedAttributes.keySet().contains(type)==false){
@@ -96,29 +97,29 @@ class Orm {
         Set<String> notAllowed = allAttributes - allowedAttributes[type]
 
         for(String attr in notAllowed){
-            if(this[attr] != null){
-                log.error "当前操作不支持对${attr}属性赋值:${this[attr]}"
+            if(this[attr] != null && this[attr] != [:] && this[attr] != []){
+                log.error "当前操作:${type}不支持对${attr}属性赋值:${this[attr]}"
                 output = false
             }
         }
 
         //属性必须是domain的字段
         List<String> domainAttrs = metaDomainMap[domain].fields*.name
-        for(String attr in attributes){
+        for(String attr in attributes.keySet()){
             if(domainAttrs.contains(attr) == false){
-                log.error "当前模型不包含属性:${attr}"
+                log.error "当前模型:${domain}不包含属性:${attr} ${domainAttrs.toString()}"
                 output = false
             }
         }
 
         //排序字段是domain的字段
-        if(domainAttrs.contains(orderField) == false){
+        if(orderField && domainAttrs.contains(orderField) == false){
             log.error "非法排序字段:${orderField}"
             output = false
         }
 
         //排序方向检查
-        if(orderDirection != null && ["asc", "desc"].contains(orderDirection)== false){
+        if(orderDirection && ["asc", "desc"].contains(orderDirection)== false){
             log.error "排序方向值:${orderDirection}异常"
             output = false
         }
@@ -129,18 +130,18 @@ class Orm {
                 log.error "非法过滤字段:${filterField}"
                 output = false
             }
-        }
 
-        //过滤OP校验
-        if(opMap.keySet().contains(filterOp) == false && opMap.values().contains(filterOp)== false){
-            log.error "非法过滤OP:${filterOp}"
-            output = false
-        }
-        
-        
-        if(p1 == null || (filterOp == "between" && p2 == null)) {
-            log.error "非法过滤参数:${p1} ${p2}"
-            output = false
+            //过滤OP校验
+            if(opMap.keySet().contains(filterOp) == false && opMap.values().contains(filterOp)== false){
+                log.error "非法过滤OP:${filterOp}"
+                output = false
+            }
+
+
+            if(p1 == null || (filterOp == "between" && p2 == null)) {
+                log.error "非法过滤参数:${p1} ${p2}"
+                output = false
+            }
         }
 
         return output
@@ -151,6 +152,11 @@ class Orm {
      * @return
      */
     long create(){
+
+        if(validate("create")== false){
+            return -1
+        }
+
         Class clazz = clazzMap[domain]
 
         clazz.withTransaction {
@@ -166,34 +172,29 @@ class Orm {
      * @return
      */
     long update(){
-        Class clazz = clazzMap[domain]
-
-        String hql="update from ${domain} "
-
-        if(attributes) {
-            hql = "${hql} set "
-
-            attributes.eachWithIndex { String field, Object value, int index ->
-                hql = "${hql} ${field} = :${field}"
-
-                if (index < attributes.size() - 1) hql = "${hql},"
-            }
-        }
-
-        if(id != null) {
-            hql = "${hql} where id = ${id}"
-        }else{
-            log.error "更新操作非法ID"
+        if(validate("update")== false){
             return -1
         }
+
+        Class clazz = clazzMap[domain]
+
         clazz.withTransaction {
-            id = clazz.executeUpdate(hql, attributes)
+            def instance = clazz.get(id)
+
+            attributes.each{String key, value->
+                instance[key] = value
+            }
+
+            instance.save()
         }
 
         return id
     }
 
     void delete(){
+        if(validate("delete")== false){
+            return
+        }
         Class clazz = clazzMap[domain]
 
         String hql="delete from ${domain} where"
@@ -210,6 +211,9 @@ class Orm {
      * @return
      */
     long count(){
+        if(validate("count")== false){
+            return
+        }
 
         Class clazz = clazzMap[domain]
         MetaDomain metaDomain = metaDomainMap[domain]
@@ -217,17 +221,17 @@ class Orm {
         String hql="select count(*) from ${domain}"
 
         if(filterField){
-            hql = "${hql} where ${expr.field} ${Expr.opMap[expr.op]} "
+            hql = "${hql} where ${filterField} ${opMap[filterOp]?:filterOp} "
 
-            MetaField f = metaDomain.getMetaField(expr.field)
+            MetaField f = metaDomain.getMetaField(filterField)
 
             if(f.numberic == true || f.type in ['Boolean', "boolean"]){
-                hql = "${hql} ${expr.param1}"
+                hql = "${hql} ${p1}"
             }else if(f.type in ["String", "char"]){
 
-                String value = expr.param1
+                String value = p1
 
-                if(f.type == "String" && expr.op == "like") {
+                if(f.type == "String" && filterOp == "like") {
                     value = "%${value}%"
                 }
 
@@ -249,21 +253,24 @@ class Orm {
      * @return
      */
     List query(){
+        if(validate("query")== false){
+            return
+        }
         Class clazz = clazzMap[domain]
         MetaDomain metaDomain = metaDomainMap[domain]
 
         String hql="from ${domain}"
         if(filterField) {
-            hql = "${hql} where ${expr.field} ${Expr.opMap[expr.op]} "
+            hql = "${hql} where ${filterField} ${opMap[filterOp]?:filterOp} "
 
-            MetaField f = metaDomain.getMetaField(expr.field)
+            MetaField f = metaDomain.getMetaField(filterField)
             if(f.numberic == true || f.type in ['Boolean', "boolean"]){
-                hql = "${hql} ${expr.param1}"
+                hql = "${hql} ${p1}"
             }else if(f.type in ["String", "char"]){
 
-                String value = expr.param1
+                String value = p1
 
-                if(f.type == "String" && expr.op == "like") {
+                if(f.type == "String" && filterOp == "like") {
                     value = "%${value}%"
                 }
 
@@ -296,15 +303,12 @@ class Orm {
      * @return
      */
     Object get(){
-
-        Class clazz = clazzMap[domain]
-
-        def result
-
-        clazz.withTransaction {
-            result = clazz.get(id)
+        if(validate("get")== false){
+            return
         }
-
-        return result
+        Class clazz = clazzMap[domain]
+        clazz.withTransaction {
+            return clazz.get(id)
+        }
     }
 }

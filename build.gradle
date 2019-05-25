@@ -37,7 +37,8 @@ dependencies {
 
     //orm and jdbc
     compile "org.grails:grails-datastore-gorm-hibernate5:7.0.0.RELEASE"
-    
+    //compile "org.grails:grails-datastore-gorm-hibernate5:6.1.12.RELEASE"
+
     runtime "org.apache.tomcat:tomcat-jdbc:8.5.0"
     runtime "com.h2database:h2:1.4.192"
     //runtime 'mysql:mysql-connector-java:5.1.47'

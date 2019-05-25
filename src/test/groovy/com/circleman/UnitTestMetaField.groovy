@@ -42,7 +42,6 @@ class UnitTestMetaField {
         MetaField metaField = new MetaField(name: "age", locale: "年龄")
         metaField.with {
             type("int")
-            nullable(false)
             min(1)
             max(6)
             unique(true)
@@ -74,7 +73,6 @@ class UnitTestMetaField {
         MetaField metaField = new MetaField(name: "price", locale: "房价")
         metaField.with {
             type("float")
-            nullable(false)
             min(1.0f)
             max(6.0f)
             decimalSize(2)
@@ -106,7 +104,6 @@ class UnitTestMetaField {
         MetaField metaField = new MetaField(name: "billionare", locale: "富一代")
         metaField.with {
             type("boolean")
-            nullable(true)
         }
 
         assert metaField.validate() == true

@@ -46,15 +46,15 @@ class MetaModel {
 
 
         MetaDomain metaTestNumberic = new MetaDomainBuilder().domain(name: "TestNumberic", locale: "数字测试", pkg: "com.circleman.domains") {
-            field name: 'nbyte1', nullable:false
-            field name: 'short1', nullable:false
-            field name: 'int1', nullable:false
+            field name: 'byte1', min: (byte) 0
+            field name: 'short1', min: (short) 0
+            field name: 'int1', min:  0
             field name: 'int2', nullable:false
-            field name: 'long1', nullable:false
+            field name: 'long1', min: 0l
             field name: 'long2', nullable:false
-            field name: 'float1', nullable:false
+            field name: 'float1', min: 0f
             field name: 'float2', nullable:false
-            field name: 'double1', nullable:false
+            field name: 'double1', min:0d
             field name: 'double2', nullable:false
         }
 

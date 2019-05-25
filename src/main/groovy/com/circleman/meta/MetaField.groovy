@@ -81,7 +81,7 @@ class MetaField implements GroovyInterceptable{
     /** 遮罩（密码） */
     Boolean mask
     /** 可空 */
-    Boolean nullable=false
+    Boolean nullable
     /** 值表 */
     List<Object> inList
     /** 正则 */

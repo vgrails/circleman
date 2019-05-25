@@ -1,8 +1,10 @@
 package com.circleman.domains
 
 import grails.gorm.annotation.Entity
+import groovy.transform.ToString
 import org.grails.datastore.gorm.GormEntity
 
+@ToString
 @Entity
 class TestNumberic implements GormEntity<TestNumberic>{
     byte byte1
