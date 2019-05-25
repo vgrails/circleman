@@ -6,7 +6,7 @@ framework {
 
     debug = false
     //反射扫描位置
-    reflectionScan = "com.circleman"    //reflections的扫描起点
+    reflectionScan = "com.circleman"
 
     app {
         //应用简称(EN)
@@ -27,7 +27,7 @@ framework {
         //是否生成
         generateDomains = true
         //生成类的包名
-        domainsPackage = "com.circleman.domains"   //codegen模型的位置
+        domainsPackage = "com.circleman.domains"
         //是否覆盖
         overridden = false
     }

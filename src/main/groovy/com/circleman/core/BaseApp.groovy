@@ -7,8 +7,6 @@ import grails.gorm.annotation.Entity
 import groovy.util.logging.Slf4j
 import org.grails.orm.hibernate.HibernateDatastore
 import org.reflections.Reflections
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import spark.Filter
 import spark.ModelAndView
 import spark.Request
@@ -179,6 +177,8 @@ class BaseApp extends EnvironmentAwareConfig{
                     clazzMap[clazz.simpleName]=clazz
                     log.info "Registered: ${clazz.canonicalName} (${clazz.simpleName})"
                 }catch(Exception e){
+
+                    log.error "Registered: ${clazz.simpleName} error:${e.message}"
                 }
             }
         }catch(Exception e){
@@ -271,77 +271,77 @@ class BaseApp extends EnvironmentAwareConfig{
         }
     }
 
-    static List<Object> query(OrmQuery query){
-        List<Object> results=[]
-        Class clazz = clazzMap[query.domain]
-
-        clazz.withTransaction {
-            results = clazz.executeQuery(query.toHql(),[max: query.max, offset: query.offset])
-            return results
-        }
-    }
-
-    static long count(OrmQuery query){
-        def results
-        Class clazz = clazzMap[query.domain]
-
-        clazz.withTransaction {
-            String hql = query.toCountHql()
-            results = clazz.executeQuery(hql)
-            return results[0]
-        }
-    }
-
-    static boolean delete(OrmDelete delete){
-        Class clazz = clazzMap[delete.domain]
-
-        clazz.withTransaction {
-            String hql = delete.toHql()
-            clazz.executeUpdate(hql)
-            return true
-        }
-    }
-
-    static long create(OrmCreate create){
-        long id
-        Class clazz = clazzMap[create.domain]
-
-        clazz.withTransaction {
-            def instance = clazz.newInstance(create.attributes)
-            instance.save(flush:true)
-
-            id = instance.id
-        }
-        return id
-    }
-
-    static long update(OrmUpdate update){
-        long id
-        Class clazz = clazzMap[update.domain]
-
-        clazz.withTransaction {
-            id = clazz.executeUpdate(update.toHql(), update.attributes)
-        }
-        return id
-    }
-
-    static String delete(String domain, Map<String, Object> params){
-        log.info domain
-
-        return "Hello OrmService"
-    }
-
-    static String list(String domain, OrmQuery params=null){
-        log.info domain
-
-        return "Hello OrmService"
-    }
-
-    static String tree(String domain, Map<String, Object> params){
-        log.info domain
-
-        return "Hello OrmService"
-    }
+//    static List<Object> query(OrmQuery query){
+//        List<Object> results=[]
+//        Class clazz = clazzMap[query.domain]
+//
+//        clazz.withTransaction {
+//            results = clazz.executeQuery(query.toHql(),[max: query.max, offset: query.offset])
+//            return results
+//        }
+//    }
+//
+//    static long count(OrmQuery query){
+//        def results
+//        Class clazz = clazzMap[query.domain]
+//
+//        clazz.withTransaction {
+//            String hql = query.toCountHql()
+//            results = clazz.executeQuery(hql)
+//            return results[0]
+//        }
+//    }
+//
+//    static boolean delete(OrmDelete delete){
+//        Class clazz = clazzMap[delete.domain]
+//
+//        clazz.withTransaction {
+//            String hql = delete.toHql()
+//            clazz.executeUpdate(hql)
+//            return true
+//        }
+//    }
+//
+//    static long create(OrmCreate create){
+//        long id
+//        Class clazz = clazzMap[create.domain]
+//
+//        clazz.withTransaction {
+//            def instance = clazz.newInstance(create.attributes)
+//            instance.save(flush:true)
+//
+//            id = instance.id
+//        }
+//        return id
+//    }
+//
+//    static long update(OrmUpdate update){
+//        long id
+//        Class clazz = clazzMap[update.domain]
+//
+//        clazz.withTransaction {
+//            id = clazz.executeUpdate(update.toHql(), update.attributes)
+//        }
+//        return id
+//    }
+//
+//    static String delete(String domain, Map<String, Object> params){
+//        log.info domain
+//
+//        return "Hello OrmService"
+//    }
+//
+//    static String list(String domain, OrmQuery params=null){
+//        log.info domain
+//
+//        return "Hello OrmService"
+//    }
+//
+//    static String tree(String domain, Map<String, Object> params){
+//        log.info domain
+//
+//        return "Hello OrmService"
+//    }
 
     /**
      * 初始化配置、模型和ORM

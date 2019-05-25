@@ -25,7 +25,7 @@ class MetaField implements GroovyInterceptable{
     static private Set<String> numbericSet = ["byte", "short", "int", "long", "float", "double", "Integer", "Float", "Double"]
 
     //数据类型允许约束映射表
-    final static private Set<String> commons =["name", "type", "locale", "flex", "widget", "nullable"]
+    final static private Set<String> commons =["name", "type", "locale", "flex", "widget"]
     final static private Set<String> numbers =["min", "max", "unique"]
     final static private Set<String> decimals =["decimalSize"]
 
@@ -33,18 +33,18 @@ class MetaField implements GroovyInterceptable{
         byte:       commons + numbers,
         short:      commons + numbers,
         int:        commons + numbers,
-        Integer:    commons + numbers,
+        Integer:    commons + numbers + "nullable",
         long:       commons + numbers,
-        Long:       commons + numbers,
+        Long:       commons + numbers + "nullable",
         float:      commons + numbers + decimals,
-        Float:      commons + numbers + decimals,
+        Float:      commons + numbers + "nullable" + decimals,
         double:     commons + numbers + decimals,
-        Double:     commons + numbers + decimals,
+        Double:     commons + numbers  + "nullable" + decimals,
         boolean:    commons ,
-        Boolean:    commons ,
+        Boolean:    commons + "nullable",
         char:       commons + ["min", "max", "inList", "unique"],
-        String:     commons + ["min", "max", "unique", "email", "mobile", "mask", "inList", "matches"],
-        Date:       commons + ["format", "min", "max", "unique"]
+        String:     commons + ["min", "max", "unique", "email", "mobile", "mask", "inList", "matches", "nullable"],
+        Date:       commons + ["format", "min", "max", "unique", "nullable"]
     ]
 
     final static private Set<String> defaultOutputConstraints =["nullable", "unique"]

@@ -96,6 +96,9 @@ class MetaDomain{
 
         String output="""
 package ${pkg}
+
+import grails.gorm.annotation.Entity
+import org.grails.datastore.gorm.GormEntity
 ${imports}
 
 /**
@@ -105,8 +108,7 @@ ${locale}
 class ${name} implements GormEntity<${name}>{
 ${attributesDefinition}
     static constraints = {
-${constraintsDefinition}
-    }
+${constraintsDefinition}    }
 }
     """
     return output

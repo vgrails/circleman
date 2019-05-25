@@ -1,15 +1,8 @@
 package com.circleman
 
 import com.circleman.core.BaseApp
-import com.circleman.meta.MetaDomainBuilder
-import com.circleman.meta.MetaDomain
 import com.circleman.core.MetaLayout
 import com.circleman.core.MetaLayoutBuilder
-import com.circleman.core.OrmCreate
-import com.circleman.core.OrmDelete
-import com.circleman.core.OrmQuery
-import com.circleman.core.MetaSearch
-import com.circleman.core.OrmUpdate
 import com.circleman.domains.Employee
 import com.circleman.domains.Organization
 import org.slf4j.Logger
@@ -29,18 +22,6 @@ class Bootstrap extends BaseApp{
         log.info getConfig("framework.port").toString()
 
         log.info System.getProperty("user.dir")
-
-        Organization.withTransaction {
-            for(int i=0;i<100;i++) {
-                new Organization(name: "研发${i}", description: "码农${i}集散地").save()
-            }
-            new Organization(name: "销售", description: "忽悠集散地").save()
-            new Organization(name: "行政", description: "美女集散地").save()
-        }
-
-        Organization.withTransaction {
-            //println "Organization: ${Organization.count}"
-        }
 
 
         MetaLayout l= new MetaLayoutBuilder().hbox(id: "left-right"){
@@ -62,9 +43,9 @@ class Bootstrap extends BaseApp{
 
         //ORM Testing
 //        OrmQuery q = new OrmQuery().domain("Organization").max(20).offset(0)
-//        q.search(new MetaSearch().op("eq").field("name").param1("研发1"))
+//        q.expr(new Expr().op("eq").orderField("name").param1("研发1"))
 //        println q.toHql()
-//        q.search(new MetaSearch().op("eq").field("id").param1(2))
+//        q.expr(new Expr().op("eq").orderField("id").param1(2))
 //        println q.toHql()
 //
 //

@@ -2,7 +2,7 @@ import com.circleman.meta.MetaDomain
 import com.circleman.meta.MetaDomainBuilder
 
 class MetaModel {
-    static boolean initModel() {
+    boolean initModel() {
         MetaDomain metaOrganization = new MetaDomainBuilder().domain(name: "Organization", locale: "组织", pkg: "com.circleman") {
             field name: 'name', locale: "名称"
             field name: 'description', locale: "简介"
@@ -43,6 +43,20 @@ class MetaModel {
             .blank(false)
 
         println metaEmployee.getMetaField('description').validate()
+
+
+        MetaDomain metaTestNumberic = new MetaDomainBuilder().domain(name: "TestNumberic", locale: "数字测试", pkg: "com.circleman.domains") {
+            field name: 'nbyte1', nullable:false
+            field name: 'short1', nullable:false
+            field name: 'int1', nullable:false
+            field name: 'int2', nullable:false
+            field name: 'long1', nullable:false
+            field name: 'long2', nullable:false
+            field name: 'float1', nullable:false
+            field name: 'float2', nullable:false
+            field name: 'double1', nullable:false
+            field name: 'double2', nullable:false
+        }
 
         println "Initialization Successful!"
         return true

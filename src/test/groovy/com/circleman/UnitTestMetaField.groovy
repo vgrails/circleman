@@ -1,6 +1,6 @@
 package com.circleman
 
-import com.circleman.core.MetaSearch
+
 import com.circleman.meta.MetaField
 import com.circleman.util.ParallelRunner
 import org.junit.jupiter.api.BeforeEach
