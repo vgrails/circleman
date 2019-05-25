@@ -1,15 +1,12 @@
 package com.circleman.util
 
-import com.circleman.core.BaseApp
 import com.circleman.meta.MetaDomain
 import com.circleman.meta.MetaField
-import grails.gorm.transactions.Transactional
 import groovy.transform.ToString
 import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
 import groovy.util.logging.Slf4j
 import static com.circleman.Bootstrap.*
-import com.circleman.domains.TestNumberic
 
 
 @Builder(builderStrategy = SimpleStrategy,prefix = "")

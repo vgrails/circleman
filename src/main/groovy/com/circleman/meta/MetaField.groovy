@@ -40,7 +40,7 @@ class MetaField implements GroovyInterceptable{
         Float:      commons + numbers + "nullable" + decimals,
         double:     commons + numbers + decimals,
         Double:     commons + numbers  + "nullable" + decimals,
-        boolean:    commons ,
+        //boolean:    commons ,
         Boolean:    commons + "nullable",
         char:       commons + ["min", "max", "inList", "unique"],
         String:     commons + ["min", "max", "unique", "email", "mobile", "mask", "inList", "matches", "nullable"],

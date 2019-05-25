@@ -61,7 +61,7 @@ class UnitTestEnvironmentAwareConfig {
     @Test
     void 并发_读取配置(){
         ParallelRunner runner=new ParallelRunner()
-        runner.Run(100,100000, {int threadId, operationId->
+        runner.Run(100,10000, {int threadId, operationId->
             assert env == DEVELOPMENT
             assert getConfig("framework.app.name") == "demo"
         })

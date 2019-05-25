@@ -7,6 +7,8 @@ import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 
+import java.text.SimpleDateFormat
+
 import static com.circleman.Bootstrap.*
 import static com.circleman.core.BaseApp.clazzMap
 import static com.circleman.util.EnvironmentAwareConfig.getDEVELOPMENT
@@ -25,6 +27,29 @@ class IntegrationTestOrm {
     @AfterAll
     static void afterAll(){
         stop()
+    }
+
+    @Test
+    void 正常_DateBooleanChar() {
+        long beforeCount = new Orm().domain("TestDateBooleanChar").count()
+
+        assert beforeCount + 1 == new Orm().domain("TestDateBooleanChar").attributes(
+            boolean1: true,
+            char1: 'e' as char,
+            date: new SimpleDateFormat("yyyy-MM-dd").parse("2009-10-22")
+        ).create()
+
+        long afterCount = new Orm().domain("TestDateBooleanChar").count()
+        assert afterCount == beforeCount + 1
+        new Orm().domain("TestDateBooleanChar").attributes(
+            boolean1: false,
+            char1: 'f' as char,
+            date: new SimpleDateFormat("yyyy-MM-dd").parse("2009-10-23")
+        ).id(beforeCount + 1).update()
+
+        clazzMap["TestDateBooleanChar"].withTransaction {
+            println new Orm().domain("TestDateBooleanChar").id(afterCount).get()
+        }
     }
 
     @Test

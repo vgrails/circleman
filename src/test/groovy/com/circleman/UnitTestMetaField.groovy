@@ -183,7 +183,7 @@ class UnitTestMetaField {
     @Test
     void 并发_使用MetaField(){
         ParallelRunner runner=new ParallelRunner()
-        runner.Run(4,100000, {int threadId, operationId->
+        runner.Run(4,10000, {int threadId, operationId->
             MetaField metaField = new MetaField(name: "name", locale: "名称")
             metaField.with {
                 type("String")

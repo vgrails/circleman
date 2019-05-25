@@ -1,5 +1,7 @@
+import com.circleman.domains.TestDateBooleanChar
 import com.circleman.meta.MetaDomain
 import com.circleman.meta.MetaDomainBuilder
+import org.grails.datastore.gorm.GormEntity
 
 class MetaModel {
     boolean initModel() {
@@ -59,6 +61,26 @@ class MetaModel {
         }
 
         println "Initialization Successful!"
+
+
+//        class TestDateBooleanChar implements GormEntity<TestDateBooleanChar> {
+//            Date date
+//            Boolean boolean1
+//            char char1
+//
+//            static constraints = {
+//                date nullable: false
+//                boolean1 nullable: false
+//                char1 min: 'c' as char
+//            }
+//        }
+
+        MetaDomain metaTestDateBooleanChar = new MetaDomainBuilder().domain(name: "TestDateBooleanChar", locale: "杂项测试", pkg: "com.circleman.domains") {
+            field name: 'date', nullable: false
+            field name: 'boolean1', nullable: false
+            field name: 'char1', min:  'c' as char
+        }
+
         return true
     }
 }
