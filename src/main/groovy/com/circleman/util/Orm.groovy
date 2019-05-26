@@ -7,6 +7,9 @@ import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
 import groovy.util.logging.Slf4j
 import static com.circleman.Bootstrap.*
+import static com.circleman.core.BaseApp.metaDomainMap
+import static com.circleman.util.EnvironmentAwareConfig.PRODUCTION
+import static com.circleman.util.EnvironmentAwareConfig.env
 
 
 @Builder(builderStrategy = SimpleStrategy,prefix = "")
@@ -30,15 +33,15 @@ class Orm {
     Integer offset
 
     /** 排序字段 */
-    String orderField
+    String orderBy
     /** 排序方向 */
-    String orderDirection
+    String direction
 
 
     /** 过滤字段 */
-    String filterField
+    String filter
     /** 过滤操作符 */
-    String filterOp
+    String op
     /** 过滤参数 */
     Object p1
     /** 过滤参数 */
@@ -56,8 +59,8 @@ class Orm {
     ]
 
     static Map<String, Set<String>> allowedAttributes = [
-        count: ["domain", "filterField", "filterOp", "p1", "p2"],
-        query: ["domain", "filterField", "filterOp", "p1", "p2", "max", "offset", "orderField", "orderDirection"],
+        count: ["domain", "filter", "op", "p1", "p2"],
+        query: ["domain", "filter", "op", "p1", "p2", "max", "offset", "orderBy", "direction"],
         create: ["domain", "attributes"],
         update: ["domain", "attributes", "id"],
         delete: ["domain", "id"],
@@ -73,6 +76,11 @@ class Orm {
     synchronized boolean validate(String type){
         boolean output = true
 
+        //生产环境不做校验
+        if(env == PRODUCTION){
+            return output
+        }
+
         if(!type && allowedAttributes.keySet().contains(type)==false){
             log.error "非法的操作类型:${type}"
             output = false
@@ -80,6 +88,11 @@ class Orm {
 
         if(!domain && metaDomainMap[domain]==null){
             log.error "非法的模型名称:${domain}"
+            output = false
+        }
+
+        if(metaDomainMap[domain].validate() ==false){
+            log.error "元模型异常:${domain} ${metaDomainMap[domain].toString()}"
             output = false
         }
 
@@ -110,32 +123,44 @@ class Orm {
         }
 
         //排序字段是domain的字段
-        if(orderField && domainAttrs.contains(orderField) == false){
-            log.error "非法排序字段:${orderField}"
+        if(orderBy && domainAttrs.contains(orderBy) == false){
+            log.error "非法排序字段:${orderBy}"
             output = false
         }
 
         //排序方向检查
-        if(orderDirection && ["asc", "desc"].contains(orderDirection)== false){
-            log.error "排序方向值:${orderDirection}异常"
+        if(direction && ["asc", "desc"].contains(direction)== false){
+            log.error "排序方向值:${direction}异常"
             output = false
         }
 
         //过滤条件校验
-        if(filterField) {
-            if (domainAttrs.contains(filterField) == false) {
-                log.error "非法过滤字段:${filterField}"
+        if(filter) {
+            if (domainAttrs.contains(filter) == false) {
+                log.error "非法过滤字段:${filter}"
                 output = false
             }
 
             //过滤OP校验
-            if(opMap.keySet().contains(filterOp) == false && opMap.values().contains(filterOp)== false){
-                log.error "非法过滤OP:${filterOp}"
+            if(opMap.keySet().contains(op) == false && opMap.values().contains(op)== false){
+                log.error "非法过滤OP:${op}"
                 output = false
             }
 
+            if(metaDomainMap[domain].getMetaField(filter).type == 'Boolean'){
+                if (['ne', 'eq', '!=', "="].contains(op) == false) {
+                    log.error "非法过滤OP:${op}，针对Boolean类型属性${filter}"
+                    output = false
+                }
 
-            if(p1 == null || (filterOp == "between" && p2 == null)) {
+                if([null, true, false].contains(p1) == false){
+                    log.error "非法过滤值p1:${p1}，针对Boolean类型属性${filter}"
+                    output = false
+                }
+            }
+
+
+            if(p1 == null || (op == "between" && p2 == null)) {
                 log.error "非法过滤参数:${p1} ${p2}"
                 output = false
             }
@@ -188,19 +213,27 @@ class Orm {
         return id
     }
 
-    void delete(){
+    boolean delete(){
         if(validate("delete")== false){
-            return
+            return false
         }
         Class clazz = clazzMap[domain]
 
-        String hql="delete from ${domain} where"
+        String hql="delete from ${domain} where id = ${id}"
 
-        hql = "${hql} where id = ${id}"
+        if(env != PRODUCTION) {
+            log.info("${hql};")
+        }
 
         clazz.withTransaction {
             clazz.executeUpdate(hql)
         }
+
+        if(env != PRODUCTION) {
+            log.info("${hql}; successful")
+        }
+
+        return true
     }
 
     /**
@@ -214,32 +247,45 @@ class Orm {
 
         Class clazz = clazzMap[domain]
         MetaDomain metaDomain = metaDomainMap[domain]
+        Map<String, Object> params = [:]
 
         String hql="select count(*) from ${domain}"
 
-        if(filterField){
-            hql = "${hql} where ${filterField} ${opMap[filterOp]?:filterOp} "
+        if(filter) {
+            hql = "${hql} where ${filter} ${opMap[op]?:op} "
 
-            MetaField f = metaDomain.getMetaField(filterField)
+            MetaField f = metaDomain.getMetaField(filter)
 
-            if(f.numberic == true || f.type in ['Boolean', "boolean"]){
-                hql = "${hql} ${p1}"
+            if(f.numberic == true || f.type == 'Boolean'){
+                hql = "${hql}${p1}"
             }else if(f.type in ["String", "char"]){
 
                 String value = p1
 
-                if(f.type == "String" && filterOp == "like") {
+                if(f.type == "String" && op == "like") {
                     value = "%${value}%"
                 }
 
-                hql = "${hql} \"${value}\""
+                hql = "${hql}\'${value}\'"
+            }else if(f.type == "Date"){
+
+                if(op != 'between') {
+                    hql = "${hql}:${filter}"
+                    params[filter] = p1
+                }else{
+                    hql = "${hql}:${filter}_left and :${filter}_right"
+                    params["${filter}_left"] = p1
+                    params["${filter}_right"] = p2
+                }
+            }else{
+                log.error ">>>> 未处理的数据类型：${f.type}"
             }
         }
 
         List result = []
 
         clazz.withTransaction {
-            result = clazz.executeQuery(hql)
+            result = clazz.executeQuery(hql, params)
         }
 
         return result[0]
@@ -251,45 +297,76 @@ class Orm {
      */
     List query(){
         if(validate("query")== false){
-            return
+            return null
         }
         Class clazz = clazzMap[domain]
         MetaDomain metaDomain = metaDomainMap[domain]
 
-        String hql="from ${domain}"
-        if(filterField) {
-            hql = "${hql} where ${filterField} ${opMap[filterOp]?:filterOp} "
+        Map<String, Object> params = [:]
 
-            MetaField f = metaDomain.getMetaField(filterField)
-            if(f.numberic == true || f.type in ['Boolean', "boolean"]){
-                hql = "${hql} ${p1}"
+        String hql="from ${domain}"
+        if(filter) {
+            hql = "${hql} where ${filter} ${opMap[op]?:op} "
+
+            MetaField f = metaDomain.getMetaField(filter)
+
+            if(f.numberic == true || f.type == 'Boolean'){
+                hql = "${hql}${p1}"
             }else if(f.type in ["String", "char"]){
 
                 String value = p1
 
-                if(f.type == "String" && filterOp == "like") {
+                if(f.type == "String" && op == "like") {
                     value = "%${value}%"
                 }
 
-                hql = "${hql} \"${value}\""
+                hql = "${hql}\'${value}\'"
+            }else if(f.type == "Date"){
+
+                if(op != 'between') {
+                    hql = "${hql}:${filter}"
+                    params[filter] = p1
+                }else{
+                    hql = "${hql}:${filter}_left and :${filter}_right"
+                    params["${filter}_left"] = p1
+                    params["${filter}_right"] = p2
+                }
+            }else{
+                log.error ">>>> 未处理的数据类型：${f.type}"
             }
         }
 
-        if(orderField){
-            hql = "${hql} order by ${orderField}"
+        if(orderBy){
+            hql = "${hql} order by ${orderBy}"
 
-            if(orderDirection){
-                hql = "${hql} ${orderDirection}"
+            if(direction){
+                hql = "${hql} ${direction}"
             }
         }
 
-        println ">>>>>>>>>>>>>>>"
-        println hql
+
+        if(max == null) {
+            params["max"] = Integer.MAX_VALUE
+        }else{
+            params["max"] = max
+        }
+        if(offset == null){
+            params["offset"] = 0
+        }else{
+            params["offset"] = offset
+        }
+
+
+
 
         List result = []
 
+        if(env != PRODUCTION) {
+            log.info("query: ${hql}; ${params}")
+        }
+
         clazz.withTransaction {
-            result = clazz.executeQuery(hql,[max: max, offset: offset])
+            result = clazz.executeQuery(hql,params)
         }
 
         return result
@@ -304,8 +381,18 @@ class Orm {
             return
         }
         Class clazz = clazzMap[domain]
+        MetaDomain metaDomain = metaDomainMap[domain]
+
+        def instance = clazz.newInstance()
+
         clazz.withTransaction {
-            return clazz.get(id)
+
+            def obj = clazz.get(id)
+            for(MetaField f in metaDomain.fields){
+                instance[f.name] = obj[f.name]
+            }
         }
+
+        return instance
     }
 }

@@ -103,18 +103,7 @@ class UnitTestMetaField {
     void 正常_基础功能Boolean(){
         MetaField metaField = new MetaField(name: "billionare", locale: "富一代")
         metaField.with {
-            type("boolean")
-        }
-
-        assert metaField.validate() == true
-        assert metaField.numberic == false
-        assert metaField.toString() != null
-        assert metaField.toField() != null
-        assert metaField.toConstraint() != null
-
-        metaField.with {
             type("Boolean")
-            nullable(true)
         }
 
         assert metaField.validate() == true

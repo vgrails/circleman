@@ -21,7 +21,7 @@ class UnitTestMetaDomain {
 
         MetaDomain metaEmployee = new MetaDomainBuilder().domain(name: "Employee", locale: "员工", pkg: "com.circleman") {
             field name: 'name', locale: "姓名", type: "String"
-            field name: 'gender', locale: "性别", type: "boolean"
+            field name: 'gender', locale: "性别", type: "Boolean"
             field name: 'age', locale: "年龄", type: "int"
             field name: 'birthday', locale: "生日", type: "Date", format: "yyyy-MM-dd"
         }
@@ -39,7 +39,7 @@ class UnitTestMetaDomain {
 
         assert metaEmployee.fields.size() == 5
         assert metaEmployee.fields[1].type == "String"
-        assert metaEmployee.fields[2].type == "boolean"
+        assert metaEmployee.fields[2].type == "Boolean"
         assert metaEmployee.fields[3].type == "int"
         assert metaEmployee.fields[4].type == "Date"
         assert metaEmployee.validate() == true

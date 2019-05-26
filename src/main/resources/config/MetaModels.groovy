@@ -48,16 +48,16 @@ class MetaModel {
 
 
         MetaDomain metaTestNumberic = new MetaDomainBuilder().domain(name: "TestNumberic", locale: "数字测试", pkg: "com.circleman.domains") {
-            field name: 'byte1', min: (byte) 0
-            field name: 'short1', min: (short) 0
-            field name: 'int1', min:  0
-            field name: 'int2', nullable:false
-            field name: 'long1', min: 0l
-            field name: 'long2', nullable:false
-            field name: 'float1', min: 0f
-            field name: 'float2', nullable:false
-            field name: 'double1', min:0d
-            field name: 'double2', nullable:false
+            field type: "byte", name: 'byte1', min: (byte) 0, locale: "比特"
+            field type: "short", name: 'short1', min: (short) 0,  locale: "短整"
+            field type: "int", name: 'int1', min:  0,  locale: "整数"
+            field type: "Integer", name: 'int2', nullable:false,  locale: "整对"
+            field type: "long", name: 'long1', min: 0l,  locale: "长整"
+            field type: "Long", name: 'long2', nullable:false,  locale: "长对"
+            field type: "float", name: 'float1', min: 0f,  locale: "浮点"
+            field type: "Float", name: 'float2', nullable:false,  locale: "浮对"
+            field type: "double", name: 'double1', min:0d,  locale: "长浮"
+            field type: "Double", name: 'double2', nullable:false,  locale: "长浮对"
         }
 
         println "Initialization Successful!"
@@ -76,9 +76,9 @@ class MetaModel {
 //        }
 
         MetaDomain metaTestDateBooleanChar = new MetaDomainBuilder().domain(name: "TestDateBooleanChar", locale: "杂项测试", pkg: "com.circleman.domains") {
-            field name: 'date', nullable: false
-            field name: 'boolean1', nullable: false
-            field name: 'char1', min:  'c' as char
+            field name: 'date', nullable: false, type: "Date", locale: "D"
+            field name: 'boolean1', nullable: false, type: "Boolean", locale: "B"
+            field name: 'char1', min:  ('c' as char), type: "char", locale: "C"
         }
 
         return true

@@ -1,6 +1,7 @@
 package com.circleman
 
 import com.circleman.domains.Organization
+import com.circleman.domains.TestDateBooleanChar
 import com.circleman.domains.TestNumberic
 import com.circleman.util.Orm
 import org.junit.jupiter.api.AfterAll
@@ -9,10 +10,8 @@ import org.junit.jupiter.api.Test
 
 import java.text.SimpleDateFormat
 
-import static com.circleman.Bootstrap.*
 import static com.circleman.core.BaseApp.clazzMap
 import static com.circleman.util.EnvironmentAwareConfig.getDEVELOPMENT
-import static spark.Spark.after
 import static spark.Spark.stop
 
 
@@ -50,6 +49,58 @@ class IntegrationTestOrm {
         clazzMap["TestDateBooleanChar"].withTransaction {
             println new Orm().domain("TestDateBooleanChar").id(afterCount).get()
         }
+
+        def list
+
+        list = new Orm().domain("TestDateBooleanChar").query()
+
+        for(TestDateBooleanChar t in list){
+            println "${t.id} date:${t.date} boolean:${t.boolean1} char:${t.char1}"
+        }
+
+        for(int i =0;i<20;i++){
+            new Orm().domain("TestDateBooleanChar").attributes(
+                boolean1: (i%2==0),
+                char1: ('g'+i) as char,
+                date: new SimpleDateFormat("yyyy-MM-dd").parse("2009-10-23")
+            ).create()
+        }
+
+        list = new Orm().domain("TestDateBooleanChar").query()
+
+        for(TestDateBooleanChar t in list){
+            println "${t.id} date:${t.date} boolean:${t.boolean1} char:${t.char1}"
+        }
+
+        list = new Orm().domain("TestDateBooleanChar").filter("boolean1").op("=").p1(true).query()
+
+        for(TestDateBooleanChar t in list){
+            println "${t.id} date:${t.date} boolean:${t.boolean1} char:${t.char1}"
+        }
+
+        list = new Orm().domain("TestDateBooleanChar").filter("char1").op("=").p1('g' as char).query()
+
+        for(TestDateBooleanChar t in list){
+            println "${t.id} date:${t.date} boolean:${t.boolean1} char:${t.char1}"
+        }
+
+        list = new Orm().domain("TestDateBooleanChar").filter("date").op("=").p1(new SimpleDateFormat("yyyy-MM-dd").parse("2009-10-23")).query()
+
+        assert list.size() == 21
+
+        for(TestDateBooleanChar t in list){
+            println "${t.id} date:${t.date} boolean:${t.boolean1} char:${t.char1}"
+        }
+
+        list = new Orm().domain("TestDateBooleanChar").filter("date").op("between").p1(new SimpleDateFormat("yyyy-MM-dd").parse("2009-10-22")).p2(new SimpleDateFormat("yyyy-MM-dd").parse("2009-10-24")).query()
+
+        21 == new Orm().domain("TestDateBooleanChar").filter("date").op("between").p1(new SimpleDateFormat("yyyy-MM-dd").parse("2009-10-22")).p2(new SimpleDateFormat("yyyy-MM-dd").parse("2009-10-24")).count()
+
+        assert list.size() == 21
+
+        for(TestDateBooleanChar t in list){
+            println "${t.id} date:${t.date} boolean:${t.boolean1} char:${t.char1}"
+        }
     }
 
     @Test
@@ -58,7 +109,7 @@ class IntegrationTestOrm {
         long beforeCount = new Orm().domain("TestNumberic").count()
 
         assert beforeCount + 1 == new Orm().domain("TestNumberic").attributes(
-            byte1: 1,
+            byte1: 1 ,
             short1: 1,
             int1: 1,
             int2: 1,
@@ -72,7 +123,7 @@ class IntegrationTestOrm {
 
         long afterCount = new Orm().domain("TestNumberic").count()
         assert afterCount == beforeCount + 1
-        new Orm().domain("TestNumberic").attributes(
+        assert afterCount == new Orm().domain("TestNumberic").attributes(
             byte1: 2,
             short1: 2,
             int1: 2,
@@ -94,52 +145,46 @@ class IntegrationTestOrm {
             println TestNumberic.get(beforeCount + 1)
 
         }
-//
-//        afterCount = new Orm().domain("Organization").type("count").count()
-//        assert afterCount == beforeCount + 1
-//
-//        TestNumberic org = new Orm().domain("Organization").type("get").id(beforeCount+1).get()
-//
-//        assert org.id == beforeCount + 1
-//        assert org.name == "工程01"
-//        assert org.description == "工程汉子多如牛01"
-//
-//        assert beforeCount + 2 == new Orm().domain("Organization").type("create").attributes([name: "工程02", description:"工程汉子多如牛02"]).create()
-//
-//        afterCount = new Orm().domain("Organization").type("count").count()
-//        assert afterCount == beforeCount + 2
-//
-//        List<TestNumberic> organizations= new Orm().domain("Organization").type("query").query()
-//
-//        assert organizations.size() == afterCount
-//
-//        assert organizations[-1].name == "工程02"
-//        assert organizations[-1].description == "工程汉子多如牛02"
-//
-//        TestNumberic.withTransaction {
-//            for(int i=0;i<100;i++) {
-//                new TestNumberic(name: "研发${i}", description: "码农${i}集散地").save()
-//            }
-//            new TestNumberic(name: "行政", description: "美女集散地").save()
-//        }
-//
-//
-//        organizations= new Orm().domain("Organization").type("query").max(10).offset(20).query()
-//
-//        for(TestNumberic o in organizations){
-//            println "${o.name} ${o.description}"
-//        }
-//
-//        organizations= new Orm().domain("Organization").type("query").max(10).offset(20).query()
-//
-//        for(TestNumberic o in organizations){
-//            println "${o.name} ${o.description}"
-//        }
-//
-//        TestNumberic.withTransaction {
-//            TestNumberic.findAll()*.delete()
-//        }
 
+        for(int i=10;i<100;i++) {
+            new Orm().domain("TestNumberic").attributes(
+                byte1: 1+i,
+                short1: 1+i,
+                int1: 1+i,
+                int2: 1+i,
+                long1: 1+i,
+                long2: 1+i,
+                float1: 1.00+i,
+                float2: 1.00+i,
+                double1: 1.0000+i,
+                double2: 1.0000+i
+            ).create()
+        }
+
+        def list= new Orm().domain("TestNumberic").max(10).offset(20).query()
+
+        for(TestNumberic o in list){
+            println "${o.byte1} ${o.double1}"
+        }
+
+        list= new Orm().domain("TestNumberic").max(10).filter("byte1").op("le").p1(15 as byte).orderBy("int1").direction("desc").query()
+
+        println ">>>> begin output"
+        for(TestNumberic o in list){
+            println "${o.byte1} ${o.float1}"
+        }
+        println "<<<< end output"
+
+        assert list.size() == 6
+
+        //删除所有
+        list= new Orm().domain("TestNumberic").query()
+
+        for(TestNumberic o in list){
+            assert new Orm().domain("TestNumberic").id(o.id).delete() == true
+        }
+
+        assert new Orm().domain("TestNumberic").count() == 0
     }
 
 

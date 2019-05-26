@@ -43,9 +43,9 @@ class Bootstrap extends BaseApp{
 
         //ORM Testing
 //        OrmQuery q = new OrmQuery().domain("Organization").max(20).offset(0)
-//        q.expr(new Expr().op("eq").orderField("name").param1("研发1"))
+//        q.expr(new Expr().op("eq").orderBy("name").param1("研发1"))
 //        println q.toHql()
-//        q.expr(new Expr().op("eq").orderField("id").param1(2))
+//        q.expr(new Expr().op("eq").orderBy("id").param1(2))
 //        println q.toHql()
 //
 //

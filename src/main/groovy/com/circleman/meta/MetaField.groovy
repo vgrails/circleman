@@ -22,7 +22,7 @@ import java.util.regex.Pattern
 @Slf4j(category = "MetaField")
 class MetaField implements GroovyInterceptable{
     //类型匹配表
-    static private Set<String> numbericSet = ["byte", "short", "int", "long", "float", "double", "Integer", "Float", "Double"]
+    static private Set<String> numbericSet = ["byte", "short", "int", "long", "float", "double", "Integer", "Long", "Float", "Double"]
 
     //数据类型允许约束映射表
     final static private Set<String> commons =["name", "type", "locale", "flex", "widget"]
@@ -40,7 +40,6 @@ class MetaField implements GroovyInterceptable{
         Float:      commons + numbers + "nullable" + decimals,
         double:     commons + numbers + decimals,
         Double:     commons + numbers  + "nullable" + decimals,
-        //boolean:    commons ,
         Boolean:    commons + "nullable",
         char:       commons + ["min", "max", "inList", "unique"],
         String:     commons + ["min", "max", "unique", "email", "mobile", "mask", "inList", "matches", "nullable"],
@@ -90,7 +89,7 @@ class MetaField implements GroovyInterceptable{
     Boolean unique
 
     boolean isNumberic(){
-        if(type in numbericSet){
+        if(numbericSet.contains(type)){
             return true
         }
 
@@ -155,7 +154,7 @@ class MetaField implements GroovyInterceptable{
             }
         }
 
-        if((type in ['Boolean', 'boolean'])==false) {
+        if((type !='Boolean')) {
             for (String attr in ["min", "max"]) {
                 if (this[attr] == null) continue
 
@@ -163,20 +162,18 @@ class MetaField implements GroovyInterceptable{
                 if(type == "long" && this[attr].class.simpleName == "Long") continue
                 if(type == "float" && this[attr].class.simpleName == "Float") continue
                 if(type == "double" && this[attr].class.simpleName == "Double") continue
+                if(type == "char" && this[attr].class.simpleName == "Character") continue
 
                 if ((type == "String" && this[attr].class.simpleName != "Integer") || (this[attr].class.simpleName != type && type != "String")) {
-                    log.error "元属性:${name}.${attr}:${this[attr]}类型不合法"
+                    log.error "元属性:${name}.${attr}:期待${type}, 实际：${this[attr]} 类型不合法"
                     output = false
                 }
             }
         }
 
-        if(min > max){
+        if(min!=null && max != null && min > max){
             log.error "元属性:${name} min > max值不合法"
             output = false
-
-            min = null
-            max = null
         }
 
         //日期格式校验
@@ -188,8 +185,6 @@ class MetaField implements GroovyInterceptable{
                 output = false
             }
         }
-
-        //format, max/min, decimalSize
 
         return output
     }
