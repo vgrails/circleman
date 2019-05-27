@@ -29,7 +29,7 @@ class MetaDomainBuilder extends BuilderSupport{
                 }
 
                 if(duplicated){
-                    log.error "出现重名属性:${child.name}"
+                    log.error "出现重名属性:${child.name} ${parent.name}"
                 }else {
                     parent.fields << child
                 }

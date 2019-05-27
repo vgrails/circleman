@@ -142,10 +142,10 @@ class MetaField implements GroovyInterceptable{
 
         if(inList){
             for(Object attr in inList) {
-                if(type == "int" && this[attr].class.simpleName == "Integer") continue
-                if(type == "long" && this[attr].class.simpleName == "Long") continue
-                if(type == "float" && this[attr].class.simpleName == "Float") continue
-                if(type == "double" && this[attr].class.simpleName == "Double") continue
+                if(type == "int" && attr?.class.simpleName == "Integer") continue
+                if(type == "char" && attr?.class.simpleName == "Character") continue
+
+                if(type in ["byte", "short", "long", "float", "double"] && type.capitalize() == attr?.class.simpleName) continue
 
                 if (attr.class.simpleName != type) {
                     log.error "元属性:${name}.inList:${inList}不合法"
@@ -159,13 +159,13 @@ class MetaField implements GroovyInterceptable{
                 if (this[attr] == null) continue
 
                 if(type == "int" && this[attr].class.simpleName == "Integer") continue
-                if(type == "long" && this[attr].class.simpleName == "Long") continue
-                if(type == "float" && this[attr].class.simpleName == "Float") continue
-                if(type == "double" && this[attr].class.simpleName == "Double") continue
                 if(type == "char" && this[attr].class.simpleName == "Character") continue
 
+                 // long->Long, float->Float
+                if(type in ["byte", "short", "long", "float", "double"] && type.capitalize() == this[attr].class.simpleName) continue
+
                 if ((type == "String" && this[attr].class.simpleName != "Integer") || (this[attr].class.simpleName != type && type != "String")) {
-                    log.error "元属性:${name}.${attr}:期待${type}, 实际：${this[attr]} 类型不合法"
+                    log.error "元属性:${name}.${attr}:期待${type}, 实际：${this[attr].class.simpleName} 类型不合法"
                     output = false
                 }
             }

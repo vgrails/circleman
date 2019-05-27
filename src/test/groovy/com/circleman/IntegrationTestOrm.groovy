@@ -4,6 +4,7 @@ import com.circleman.domains.Organization
 import com.circleman.domains.TestDateBooleanChar
 import com.circleman.domains.TestNumberic
 import com.circleman.util.Orm
+import com.circleman.util.ParallelRunner
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -136,7 +137,7 @@ class IntegrationTestOrm {
             double2: 2.0000
         ).id(beforeCount + 1).update()
 
-        clazzMap["TestNumberic"].withTransaction {
+        TestNumberic.withTransaction {
             println new Orm().domain("TestNumberic").id(afterCount).get()
         }
 
@@ -201,12 +202,13 @@ class IntegrationTestOrm {
         afterCount = new Orm().domain("Organization").count()
         assert afterCount == beforeCount + 1
 
-        Organization org = new Orm().domain("Organization").id(afterCount).get()
+        Organization.withTransaction {
+            Organization org = new Orm().domain("Organization").id(beforeCount + 1).get()
 
-        assert org.id == beforeCount + 1
-        assert org.name == "工程01"
-        assert org.description == "工程汉子多如牛01"
-
+            assert org.id == beforeCount + 1
+            assert org.name == "工程01"
+            assert org.description == "工程汉子多如牛01"
+        }
         assert beforeCount + 2 == new Orm().domain("Organization").attributes([name: "工程02", description:"工程汉子多如牛02"]).create()
 
         afterCount = new Orm().domain("Organization").count()
@@ -270,5 +272,42 @@ class IntegrationTestOrm {
 
         long afterCount = new Orm().domain("Organization").count()
         assert afterCount == beforeCount
+    }
+
+    @Test
+    void 并发_ORM操作(){
+        ParallelRunner runner=new ParallelRunner()
+        int THREAD_NUM = 4
+        runner.Run(THREAD_NUM,5000, {int threadId, operationId->
+            if(THREAD_NUM == 0){
+                assert new Orm().domain("TestDateBooleanChar").attributes(
+                    boolean1: true,
+                    char1: 'e' as char,
+                    date: new SimpleDateFormat("yyyy-MM-dd").parse("2009-10-22")
+                ).create() > 0
+            }else if(THREAD_NUM == 1){
+                assert new Orm().domain("TestNumberic").attributes(
+                    byte1: 1 as byte,
+                    short1: 1 as short,
+                    int1: 1,
+                    int2: 1,
+                    long1: 1l,
+                    long2: 1l,
+                    float1: 1.00f,
+                    float2: 1.00f,
+                    double1: 1.0000d,
+                    double2: 1.0000d
+                ).create() >0
+            }else if(THREAD_NUM == 3){
+                assert new Orm().domain("Organization").attributes([name: "1工程", description:"1工程汉子多如牛"]).create() > 0
+            }else {
+                assert new Orm().domain("Organization").count() >= 0
+                assert new Orm().domain("TestDateBooleanChar").count() >= 0
+                assert new Orm().domain("TestNumberic").count() >= 0
+            }
+        })
+
+        println runner.toString()
+        assert runner.operationPerSecond > 1000
     }
 }

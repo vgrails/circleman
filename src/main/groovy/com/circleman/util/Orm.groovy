@@ -242,7 +242,7 @@ class Orm {
      */
     long count(){
         if(validate("count")== false){
-            return
+            return -1
         }
 
         Class clazz = clazzMap[domain]
@@ -279,6 +279,7 @@ class Orm {
                 }
             }else{
                 log.error ">>>> 未处理的数据类型：${f.type}"
+                return -1
             }
         }
 
@@ -376,23 +377,18 @@ class Orm {
      * 获取单一对象
      * @return
      */
-    Object get(){
-        if(validate("get")== false){
-            return
+    synchronized Object get() {
+        if (validate("get") == false) {
+            return null
         }
+
         Class clazz = clazzMap[domain]
-        MetaDomain metaDomain = metaDomainMap[domain]
 
-        def instance = clazz.newInstance()
-
+        def instance
         clazz.withTransaction {
+            instance = clazz.get(id)
+            return instance
 
-            def obj = clazz.get(id)
-            for(MetaField f in metaDomain.fields){
-                instance[f.name] = obj[f.name]
-            }
         }
-
-        return instance
     }
 }

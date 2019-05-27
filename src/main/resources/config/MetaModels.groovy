@@ -21,7 +21,6 @@ class MetaModel {
             .min(2)
             .max(32)
             .blank(false)
-            .decimalSize(3)
 
         metaOrganization.getMetaField('description')
             .type("String")
@@ -36,7 +35,6 @@ class MetaModel {
             .min(2)
             .max(32)
             .blank(false)
-            .decimalSize(3)
 
         metaEmployee.getMetaField('description')
             .type("String")
@@ -44,7 +42,8 @@ class MetaModel {
             .max(32)
             .blank(false)
 
-        println metaEmployee.getMetaField('description').validate()
+        println metaOrganization.validate()
+        println metaEmployee.validate()
 
 
         MetaDomain metaTestNumberic = new MetaDomainBuilder().domain(name: "TestNumberic", locale: "数字测试", pkg: "com.circleman.domains") {
