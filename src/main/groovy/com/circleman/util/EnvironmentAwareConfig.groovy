@@ -1,10 +1,22 @@
 package com.circleman.util
 
+import com.circleman.meta.MetaDomain
 import com.google.gson.Gson
+import grails.gorm.annotation.Entity
 import groovy.json.JsonOutput
 import groovy.util.logging.Slf4j
+import org.reflections.Reflections
+import org.reflections.scanners.ResourcesScanner
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+import java.util.regex.Pattern
+
+import static com.circleman.Bootstrap.getLog
+import static com.circleman.Bootstrap.getLog
+import static com.circleman.Bootstrap.getLog
+import static com.circleman.Bootstrap.getLog
+import static com.circleman.Bootstrap.getLog
 
 /**
  * 环境敏感的配置类

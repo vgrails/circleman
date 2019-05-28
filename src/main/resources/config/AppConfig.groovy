@@ -28,6 +28,8 @@ framework {
         generateDomains = true
         //生成类的包名
         domainsPackage = "com.circleman.domains"
+
+        apiPrefix = "api"
         //是否覆盖
         overridden = false
     }

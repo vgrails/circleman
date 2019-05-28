@@ -7,14 +7,15 @@ import grails.gorm.annotation.Entity
 import groovy.util.logging.Slf4j
 import org.grails.orm.hibernate.HibernateDatastore
 import org.reflections.Reflections
-import spark.Filter
+import org.reflections.scanners.ResourcesScanner
 import spark.ModelAndView
 import spark.Request
 import spark.Response
 import spark.Route
 import spark.template.velocity.VelocityTemplateEngine
 
-import static spark.Spark.get
+import java.util.regex.Pattern
+
 import static spark.Spark.port
 import static spark.Spark.staticFiles
 
@@ -22,87 +23,89 @@ import static spark.Spark.staticFiles
 class BaseApp extends EnvironmentAwareConfig{
     //ORM相关
     static Map<String, MetaDomain> metaDomainMap =[:]
-    private static Set entities = []
     static Map<String, Object> clazzMap = [:]
+    static private Set<Class> entities = []
+    static private HibernateDatastore hibernateDatastore
 
     //静态工具
     private static Gson gson = new Gson()
-    static HibernateDatastore datastore
+
     private static VelocityTemplateEngine engine = new VelocityTemplateEngine()
 
 
 
-    def before(final Closure closure){
-        spark.Spark.before(new Filter(){
-            void handle(Request request, Response response){
-                closure.delegate = this
-                closure(request, response)
-            }
-        })
-    }
-
-    def after(final Closure closure){
-        spark.Spark.after(new Filter(){
-            void handle(Request request, Response response){
-                closure.delegate = this
-                closure(request, response)
-            }
-        })
-    }
-
-    private Route createClosureBasedRouteForPath(String path, Closure ... closures) {
-        new Route(path) {
-            def handle(Request request, Response response) {
-                closures*.delegate = this
-                return closures*.call(request, response).findAll { it }.join()
-            }
-        }
-    }
-
-    def get(String path, Closure ... closures) {
-        spark.Spark.get(createClosureBasedRouteForPath(path, closures))
-    }
+//    def before(final Closure closure){
+//        spark.Spark.before(new Filter(){
+//            void handle(Request request, Response response){
+//                closure.delegate = this
+//                closure(request, response)
+//            }
+//        })
+//    }
+//
+//    def after(final Closure closure){
+//        spark.Spark.after(new Filter(){
+//            void handle(Request request, Response response){
+//                closure.delegate = this
+//                closure(request, response)
+//            }
+//        })
+//    }
+//
+//    private Route createClosureBasedRouteForPath(String path, Closure ... closures) {
+//        new Route(path) {
+//            def handle(Request request, Response response) {
+//                closures*.delegate = this
+//                return closures*.call(request, response).findAll { it }.join()
+//            }
+//        }
+//    }
+//
+//    def get(String path, Closure ... closures) {
+//        spark.Spark.get(createClosureBasedRouteForPath(path, closures))
+//    }
 
     static def GET(String path, Closure closure) {
-
-
         spark.Spark.get(path, new Route(){
             def handle(Request request, Response response) {
+
+                response.type("text/json")
+
                 closure.delegate = this
-
                 Closure c = closure.rcurry(convertToParams(request))
-
                 return c(request, response)
             }
         })
     }
 
-    def post(String path, Closure ... closures) {
-        spark.Spark.post(createClosureBasedRouteForPath(path, closures))
+    static def PUT(String path, Closure closure) {
+        spark.Spark.get(path, new Route(){
+            def handle(Request request, Response response) {
+                closure.delegate = this
+                Closure c = closure.rcurry(convertToParams(request))
+                return c(request, response)
+            }
+        })
     }
 
-    def put(String path, Closure ... closures) {
-        spark.Spark.put(createClosureBasedRouteForPath(path, closures))
+    static def POST(String path, Closure closure) {
+        spark.Spark.get(path, new Route(){
+            def handle(Request request, Response response) {
+                closure.delegate = this
+                Closure c = closure.rcurry(convertToParams(request))
+                return c(request, response)
+            }
+        })
     }
 
-    def delete(String path, Closure ... closures) {
-        spark.Spark.delete(createClosureBasedRouteForPath(path, closures))
-    }
-
-    def head(String path, Closure ... closures) {
-        spark.Spark.head(createClosureBasedRouteForPath(path, closures))
-    }
-
-    def trace(String path, Closure ... closures) {
-        spark.Spark.trace(createClosureBasedRouteForPath(path, closures))
-    }
-
-    def connect(String path, Closure ... closures) {
-        spark.Spark.connect(createClosureBasedRouteForPath(path, closures))
-    }
-
-    def options(String path, Closure ... closures) {
-        spark.Spark.options(createClosureBasedRouteForPath(path, closures))
+    static def DELETE(String path, Closure closure) {
+        spark.Spark.get(path, new Route(){
+            def handle(Request request, Response response) {
+                closure.delegate = this
+                Closure c = closure.rcurry(convertToParams(request))
+                return c(request, response)
+            }
+        })
     }
 
     static json(Object obj) {
@@ -146,231 +149,193 @@ class BaseApp extends EnvironmentAwareConfig{
             }
         }
 
-        return params
+        Map<String, String> output = [:]
+        //将start转换成: offset
+        try {
+            output["offset"] = Integer.parseInt(params["start"].toString())
+        }catch(Exception e){
+            output["offset"] = 0
+        }
+
+        //将count转换成: max
+        try {
+            output["max"] = Integer.parseInt(params["count"].toString())
+            //params.remove("count")
+        }catch(Exception e){
+            output["max"] = 10
+        }
+
+        //:xx -> xx sort_xx -> value => sort -> xx order -> value
+        params.each{String key, Object value ->
+            if(key.startsWith("sort_")){
+                output["sort"] = key - "sort_"
+                output["order"] = value.toString()
+
+                //params.remove(key)
+            }else if(key.startsWith(":")){
+                String k = key - ":"
+                output[k] = params[key]
+                //params.remove(key)
+            }
+        }
+
+        //将String id 转换成long id
+        if(params['id']){
+            try {
+                output['id']=Long.parseLong(params['id'])
+            }catch(Exception e){
+            }
+        }
+
+        return output
     }
 
     static void initDatastore(){
-
-        Map memdbConfig = [
-            'hibernate.hbm2ddl.auto':'create-drop',
-            'dataSource.url':'jdbc:h2:mem:myDB'
-        ]
-
-        Map mysqlConfig = [
-            'hibernate.hbm2ddl.auto':'create-drop',
-            'dataSource.dialect':'org.hibernate.dialect.MySQL5InnoDBDialect',
-            'dataSource.url':'jdbc:mysql://localhost:3306/test?useSSL=false',
-            'dataSource.driverClassName':'com.mysql.jdbc.Driver',
-            'dataSource.username':'user',
-            'dataSource.password':'123'
-        ]
-
         try {
+            Map hibernateConfig = [:]
 
-            Reflections reflections = new Reflections("com.circleman")
+            //使用内存存储
+            if(env == env){
+                hibernateConfig['hibernate.hbm2ddl.auto'] = getConfig("database.hbm2ddl")
+                hibernateConfig['dataSource.url'] = getConfig("database.url")
+                hibernateConfig['dataSource.dialect'] = "org.hibernate.dialect.H2Dialect"
+                hibernateConfig['dataSource.driverClassName'] = "org.h2.Driver"
+            }else{
+                hibernateConfig['dataSource.dialect'] = "org.hibernate.dialect.MySQL5InnoDBDialect"
+                hibernateConfig['dataSource.driverClassName'] = "com.mysql.jdbc.Driver"
+                hibernateConfig['dataSource.username'] = getConfig("database.username")
+                hibernateConfig['dataSource.password'] = getConfig("database.password")
+            }
 
-            entities = reflections.getTypesAnnotatedWith(Entity)
-
+            Reflections reflections = new Reflections(getConfig("framework.codegen.domainsPackage"))
+            entities =reflections.getTypesAnnotatedWith(Entity)
             entities.each{ Class clazz ->
                 try {
-                    datastore = new HibernateDatastore(memdbConfig, clazz)
+                    hibernateDatastore = new HibernateDatastore(hibernateConfig, clazz)
                     clazzMap[clazz.simpleName]=clazz
-                    log.info "Registered: ${clazz.canonicalName} (${clazz.simpleName})"
+                    log.info "注册: ${clazz.canonicalName} (${clazz.simpleName})"
                 }catch(Exception e){
 
-                    log.error "Registered: ${clazz.simpleName} error:${e.message}"
+                    log.error "注册: ${clazz.simpleName} 失败:${e.message}"
                 }
             }
         }catch(Exception e){
-            println "initDatastore failed!"
+            log.error "initDatastore 失败:${e.message}"
         }
     }
 
-    static void initDomainDefaultAction(){
+    static void initDomainDefaultAction() {
 
-        try {
-
-            clazzMap.each{ String simpleName, Class clazz ->
-                try {
-                    log.info "Registered Action: ${simpleName}"
-
-//                    try {
-//                        def O = this.class.forName("com.circleman.domains.Organization")
-//                        println O.count
-//                        println O.findByName("研发")
-//                    }catch(Exception e){
-//                        println e.message
+//        clazzMap.each { String simpleName, Class clazz ->
+//            try {
+//                String name = simpleName.uncapitalize()
+//
+//                GET "${name}", { Request request, Response response, Map params ->
+//
+//
+//                    Map output = [:]
+//
+//                    Organization.withTransaction {
+//                        output['total_count'] = Organization.count
+//                        output['pos'] = params['offset']
+//                        output['data'] = Organization.findAll([max:params['max'], offset: params['offset']])
 //                    }
-
-
-                    get "${simpleName.uncapitalize()}/list", { Request request, Response response ->
-                        clazz.withTransaction {
-
-                            Map params = convertToParams(request)
-                            println params
-
-                            List output = [
-                                [count: clazz.count, dollars: "密", color: "#ff0000"],
-                                [count: new Random().nextInt(100) + 10, dollars: "码", color: "#00ff00"],
-                                [count: new Random().nextInt(100) + 10, dollars: "青", color: "#0000ff"],
-                                [count: new Random().nextInt(100) + 10, dollars: "清", color: "#ffff00"],
-                                [count: new Random().nextInt(100) + 10, dollars: "菁", color: "#ffff00"]
-                            ]
-
-                            log.debug OrmService.list(simpleName, params)
-
-//                        Map queryMap = [:]
 //
+//                    return json(output)
+//                }
 //
-//                        params.keySet().each { String key->
-//                            if(key.startsWith("sort_")){
-//                                queryMap["sort"] = key - "sort_"
-//                                queryMap["order"] = params[key]
-//                            }
-//                        }
+//                GET "${name}/:id", { Request request, Response response, Map params ->
 //
-//                        List<Map<String, String>> datas = []
+//                    println "${name} ${params}"
 //
-//                        long start = 0
-//                        long count = 10
+//                    def instance
 //
-//                        try{
-//                            start = Integer.parseInt(params.start)
-//                            count = Integer.parseInt(params.count)
-//                        }catch(Exception e){}
+//                    Organization.withTransaction {
+//                        instance = Organization.get(params['id'] as Long)
+//                    }
 //
-//                        queryMap["max"]=count
-//                        queryMap["offset"]=start
+//                    return json(instance)
+//                }
 //
-//
-//                        List<Region> regions=Region.findAll(queryMap)
-//
-//                        Map output = [
-//                            data: regions,
-//                            pos: start,
-//                            total_count: Region.count
-//                        ]
-//
-//                        String out = (output as JSON)
-//
-//                        println "list: ${out}"
-//                        render out
-
-
-                            json(output)
-                        }
-                    }
-
-                    log.debug  "==> generate ${simpleName}/chart"
-                }catch(Exception e){
-                    println e.message
-                }
-            }
-        }catch(Exception e){
-            println "initDomainDefaultAction failed!${e.message}"
-        }
+//            } catch (Exception e) {
+//                log.error "注册默认行为异常:${e.message}"
+//            }
+//        }
     }
 
-//    static List<Object> query(OrmQuery query){
-//        List<Object> results=[]
-//        Class clazz = clazzMap[query.domain]
-//
-//        clazz.withTransaction {
-//            results = clazz.executeQuery(query.toHql(),[max: query.max, offset: query.offset])
-//            return results
-//        }
-//    }
-//
-//    static long count(OrmQuery query){
-//        def results
-//        Class clazz = clazzMap[query.domain]
-//
-//        clazz.withTransaction {
-//            String hql = query.toCountHql()
-//            results = clazz.executeQuery(hql)
-//            return results[0]
-//        }
-//    }
-//
-//    static boolean delete(OrmDelete delete){
-//        Class clazz = clazzMap[delete.domain]
-//
-//        clazz.withTransaction {
-//            String hql = delete.toHql()
-//            clazz.executeUpdate(hql)
-//            return true
-//        }
-//    }
-//
-//    static long create(OrmCreate create){
-//        long id
-//        Class clazz = clazzMap[create.domain]
-//
-//        clazz.withTransaction {
-//            def instance = clazz.newInstance(create.attributes)
-//            instance.save(flush:true)
-//
-//            id = instance.id
-//        }
-//        return id
-//    }
-//
-//    static long update(OrmUpdate update){
-//        long id
-//        Class clazz = clazzMap[update.domain]
-//
-//        clazz.withTransaction {
-//            id = clazz.executeUpdate(update.toHql(), update.attributes)
-//        }
-//        return id
-//    }
-//
-//    static String delete(String domain, Map<String, Object> params){
-//        log.info domain
-//
-//        return "Hello OrmService"
-//    }
-//
-//    static String list(String domain, OrmQuery params=null){
-//        log.info domain
-//
-//        return "Hello OrmService"
-//    }
-//
-//    static String tree(String domain, Map<String, Object> params){
-//        log.info domain
-//
-//        return "Hello OrmService"
-//    }
 
     /**
      * 初始化配置、模型和ORM
      * @return
      */
     static boolean initialization(){
+
+
         initConfig()
 
         staticFiles.location("/assets")
         port(getConfig("framework.port"))
 
-        initMetaModels()
+        //加载模型
+        loadResources(~/.*Model\.groovy/, "define")
+
+        //校验所有模型配置正常
+        if(env != PRODUCTION){
+            boolean result = true
+
+            metaDomainMap.each{String name, MetaDomain model->
+                result = model.validate()
+
+                if(result == false){
+                    log.error "${name}的MetaDomain存在异常配置"
+                }else{
+                    log.info "${name}的MetaDomain校验通过"
+                }
+            }
+        }
+
         initDatastore()
         initDomainDefaultAction()
+        loadResources(~/.*Action\.groovy/, "define")
+        loadResources(~/DataInit\.groovy/, "init")
+    }
+
+    synchronized static Set<Class> getEntityClasses(String pkg){
+        Reflections reflections = new Reflections(pkg)
+        return reflections.getTypesAnnotatedWith(Entity)
+    }
+
+    synchronized static private Set<String> getResourceScript(Pattern pattern){
+        Reflections reflections = new Reflections(new ResourcesScanner())
+
+        return reflections.getResources(pattern)
     }
 
     /**
-     * 加载元模型数据
+     * 扫描资源目录，找到特定类，并调用特定类的方法
+     * @param pattern 匹配模式
+     * @param initMethod 初始化方法(无参数)
      * @return
      */
-    static boolean initMetaModels(){
+    synchronized static boolean loadResources(Pattern pattern, String initMethod){
         boolean output = true
 
         try {
             GroovyScriptEngine engine = new GroovyScriptEngine(".")
-            Class clazz = engine.loadScriptByName("./src/main/resources/config/MetaModels.groovy")
-            output = clazz.newInstance().initModel()
+
+            getResourceScript(pattern).each{String name ->
+                try {
+                    Class clazz = engine.loadScriptByName("./src/main/resources/${name}")
+                    output = clazz.newInstance()."${initMethod}"()
+
+                    log.debug("${name} 加载: ${output}")
+                }catch(Exception e){
+                    log.debug("${name} 加载失败: ${e.message}")
+                }
+            }
+
         }catch(Exception e){
-            log.error("元数据(initMetaModels)加载异常: ${e.message}")
+            log.error("loadResource ${pattern.toString()} 加载异常: ${e.message}")
         }
 
         if(env == DEVELOPMENT && getConfig("frameowork.debug")==true) {

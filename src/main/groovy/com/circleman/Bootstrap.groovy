@@ -5,6 +5,10 @@ import com.circleman.core.MetaLayout
 import com.circleman.core.MetaLayoutBuilder
 import com.circleman.domains.Employee
 import com.circleman.domains.Organization
+import grails.gorm.annotation.Entity
+import org.reflections.Reflections
+import org.reflections.scanners.ResourcesScanner
+import org.reflections.util.ConfigurationBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spark.Request
@@ -19,10 +23,7 @@ class Bootstrap extends BaseApp{
 
         initialization()
 
-        log.info getConfig("framework.port").toString()
-
         log.info System.getProperty("user.dir")
-
 
         MetaLayout l= new MetaLayoutBuilder().hbox(id: "left-right"){
             tree(id: "leftTree")
@@ -43,9 +44,9 @@ class Bootstrap extends BaseApp{
 
         //ORM Testing
 //        OrmQuery q = new OrmQuery().domain("Organization").max(20).offset(0)
-//        q.expr(new Expr().op("eq").orderBy("name").param1("研发1"))
+//        q.expr(new Expr().op("eq").sort("name").param1("研发1"))
 //        println q.toHql()
-//        q.expr(new Expr().op("eq").orderBy("id").param1(2))
+//        q.expr(new Expr().op("eq").sort("id").param1(2))
 //        println q.toHql()
 //
 //
