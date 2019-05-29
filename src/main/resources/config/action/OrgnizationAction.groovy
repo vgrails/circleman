@@ -33,6 +33,8 @@ class OrgnizationAction {
             return json(instance)
         }
 
+        log.info "服务注册很成功!"
+
         return true
     }
 }

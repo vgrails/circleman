@@ -79,7 +79,7 @@ class BaseApp extends EnvironmentAwareConfig{
     }
 
     static def PUT(String path, Closure closure) {
-        spark.Spark.get(path, new Route(){
+        spark.Spark.put(path, new Route(){
             def handle(Request request, Response response) {
                 closure.delegate = this
                 Closure c = closure.rcurry(convertToParams(request))
@@ -89,7 +89,7 @@ class BaseApp extends EnvironmentAwareConfig{
     }
 
     static def POST(String path, Closure closure) {
-        spark.Spark.get(path, new Route(){
+        spark.Spark.POST(path, new Route(){
             def handle(Request request, Response response) {
                 closure.delegate = this
                 Closure c = closure.rcurry(convertToParams(request))
@@ -99,7 +99,7 @@ class BaseApp extends EnvironmentAwareConfig{
     }
 
     static def DELETE(String path, Closure closure) {
-        spark.Spark.get(path, new Route(){
+        spark.Spark.delete(path, new Route(){
             def handle(Request request, Response response) {
                 closure.delegate = this
                 Closure c = closure.rcurry(convertToParams(request))
@@ -300,16 +300,7 @@ class BaseApp extends EnvironmentAwareConfig{
         loadResources(~/DataInit\.groovy/, "init")
     }
 
-    synchronized static Set<Class> getEntityClasses(String pkg){
-        Reflections reflections = new Reflections(pkg)
-        return reflections.getTypesAnnotatedWith(Entity)
-    }
 
-    synchronized static private Set<String> getResourceScript(Pattern pattern){
-        Reflections reflections = new Reflections(new ResourcesScanner())
-
-        return reflections.getResources(pattern)
-    }
 
     /**
      * 扫描资源目录，找到特定类，并调用特定类的方法

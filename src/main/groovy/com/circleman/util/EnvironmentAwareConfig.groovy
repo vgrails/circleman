@@ -7,17 +7,8 @@ import groovy.json.JsonOutput
 import groovy.util.logging.Slf4j
 import org.reflections.Reflections
 import org.reflections.scanners.ResourcesScanner
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 
 import java.util.regex.Pattern
-
-import static com.circleman.Bootstrap.getLog
-import static com.circleman.Bootstrap.getLog
-import static com.circleman.Bootstrap.getLog
-import static com.circleman.Bootstrap.getLog
-import static com.circleman.Bootstrap.getLog
-
 /**
  * 环境敏感的配置类
  *
@@ -97,5 +88,16 @@ class EnvironmentAwareConfig {
         }
 
         return result
+    }
+
+    synchronized static Set<Class> getEntityClasses(String pkg){
+        Reflections reflections = new Reflections(pkg)
+        return reflections.getTypesAnnotatedWith(Entity)
+    }
+
+    synchronized static private Set<String> getResourceScript(Pattern pattern){
+        Reflections reflections = new Reflections(new ResourcesScanner())
+
+        return reflections.getResources(pattern)
     }
 }
