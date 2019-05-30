@@ -1,26 +1,30 @@
 package com.circleman.util
 
+import groovy.util.logging.Slf4j
 import spark.Request
 import spark.Response
 import spark.Route
 
-@Singleton
+@Slf4j(category = "RouteUtil")
 class RouteUtil {
+    /** 保存已注册的Url映射 */
+    static Set<String> registeredUrls = []
+    /**
+     * 移除字符类型包裹的 ""或 ''
+     */
+    static private String remoteStringQuote( String str){
+        if(str != null && str[0] in ["\"", "'"] && str[0]==str[-1]){
+            str = str[1..-2]
+        }
 
-    static private Map<String, Boolean> registeredUrlMap = [:]
+        return str
+    }
 
-
-
+    /**
+     * 将request转换成params
+     */
     static private Map convertToParams(Request request){
         Map<String, String> params = [:]
-
-        Closure remoteStringQuote={ String str->
-            if(str != null && str[0] in ["\"", "'"] && str[0]==str[-1]){
-                str = str[1..-2]
-            }
-
-            return str
-        }
 
         params.putAll(request.params())
 
@@ -85,25 +89,41 @@ class RouteUtil {
         return output
     }
 
-    static def GET(String path, Closure closure) {
+    /**
+     * 注册GET
+     * @param path
+     * @param closure
+     * @return
+     */
+    synchronized static def GET(String path, Closure closure) {
 
+        String key = "get:${path}"
+        if(registeredUrls.contains(key)==false) {
+            registeredUrls.add(key)
 
+            spark.Spark.get(path, new Route(){
+                def handle(Request request, Response response) {
 
-        registeredUrlMap[path]=true
+                    response.type("text/json")
 
-        spark.Spark.get(path, new Route(){
-            def handle(Request request, Response response) {
-
-                response.type("text/json")
-
-                closure.delegate = this
-                Closure c = closure.rcurry(convertToParams(request))
-                return c(request, response)
-            }
-        })
+                    closure.delegate = this
+                    Closure c = closure.rcurry(convertToParams(request))
+                    return c(request, response)
+                }
+            })
+        }else{
+            log.error "请勿重复添加路由:${key}"
+        }
     }
 
+    /**
+     * 注册PUT
+     * @param path
+     * @param closure
+     * @return
+     */
     static def PUT(String path, Closure closure) {
+        registeredUrls.add("put:${path}")
 
         spark.Spark.put(path, new Route(){
             def handle(Request request, Response response) {
@@ -114,8 +134,16 @@ class RouteUtil {
         })
     }
 
+    /**
+     * 注册POST
+     * @param path
+     * @param closure
+     * @return
+     */
     static def POST(String path, Closure closure) {
-        spark.Spark.POST(path, new Route(){
+        registeredUrls.add("post:${path}")
+
+        spark.Spark.post(path, new Route(){
             def handle(Request request, Response response) {
                 closure.delegate = this
                 Closure c = closure.rcurry(convertToParams(request))
@@ -124,7 +152,15 @@ class RouteUtil {
         })
     }
 
+    /**
+     * 注册DELETE
+     * @param path
+     * @param closure
+     * @return
+     */
     static def DELETE(String path, Closure closure) {
+        registeredUrls.add("delete:${path}")
+
         spark.Spark.delete(path, new Route(){
             def handle(Request request, Response response) {
                 closure.delegate = this

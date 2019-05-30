@@ -10,6 +10,12 @@ class OrgnizationAction {
     boolean define() {
 
         GET "organization", { Request request, Response response, Map params ->
+
+
+            return json([code: 200, msg: "Hello World!"])
+        }
+
+        GET "organization", { Request request, Response response, Map params ->
             Map output = [:]
 
             Organization.withTransaction {
@@ -20,6 +26,8 @@ class OrgnizationAction {
 
             return json(output)
         }
+
+
 
         GET "organization/:id", { Request request, Response response, Map params ->
 
