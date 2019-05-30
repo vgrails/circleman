@@ -4,6 +4,7 @@ import groovy.transform.ToString
 import groovy.transform.builder.Builder
 import groovy.transform.builder.SimpleStrategy
 import groovy.util.logging.Slf4j
+import jdk.nashorn.internal.ir.annotations.Immutable
 import org.hibernate.boot.model.relational.SimpleAuxiliaryDatabaseObject
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

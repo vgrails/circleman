@@ -4,6 +4,7 @@ import com.circleman.domains.Organization
 import spark.Request
 import spark.Response
 import static com.circleman.Bootstrap.*
+import static com.circleman.util.RouteUtil.*
 
 class OrgnizationAction {
     boolean define() {

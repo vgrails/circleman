@@ -4,17 +4,12 @@ import com.circleman.core.BaseApp
 import com.circleman.core.MetaLayout
 import com.circleman.core.MetaLayoutBuilder
 import com.circleman.domains.Employee
-import com.circleman.domains.Organization
-import grails.gorm.annotation.Entity
-import org.reflections.Reflections
-import org.reflections.scanners.ResourcesScanner
-import org.reflections.util.ConfigurationBuilder
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import spark.Request
 import spark.Response
-
-import static spark.Spark.*;
+import static com.circleman.util.RouteUtil.*
+import static spark.Spark.*
 
 class Bootstrap extends BaseApp{
     static Logger log = LoggerFactory.getLogger(Bootstrap)
