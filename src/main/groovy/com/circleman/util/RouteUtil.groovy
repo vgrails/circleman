@@ -4,11 +4,13 @@ import groovy.util.logging.Slf4j
 import spark.Request
 import spark.Response
 import spark.Route
+import spark.Filter
 
 @Slf4j(category = "RouteUtil")
 class RouteUtil {
     /** 保存已注册的Url映射 */
     static Set<String> registeredUrls = []
+
     /**
      * 移除字符类型包裹的 ""或 ''
      */
@@ -91,114 +93,82 @@ class RouteUtil {
 
     /**
      * 注册GET
-     * @param path
-     * @param closure
-     * @return
      */
     synchronized static def GET(String path, Closure closure) {
 
-        String key = "get:${path}"
-        if(registeredUrls.contains(key)==false) {
-            registeredUrls.add(key)
-
-            spark.Spark.get(path, new Route(){
-                def handle(Request request, Response response) {
-
-                    response.type("text/json")
-
-                    closure.delegate = this
-                    Closure c = closure.rcurry(convertToParams(request))
-                    return c(request, response)
-                }
-            })
-        }else{
-            log.error "请勿重复添加路由:${key}"
-        }
+        route("get", path, closure)
     }
 
     /**
      * 注册PUT
-     * @param path
-     * @param closure
-     * @return
      */
-    static def PUT(String path, Closure closure) {
-        registeredUrls.add("put:${path}")
+    synchronized static def PUT(String path, Closure closure) {
 
-        spark.Spark.put(path, new Route(){
-            def handle(Request request, Response response) {
-                closure.delegate = this
-                Closure c = closure.rcurry(convertToParams(request))
-                return c(request, response)
-            }
-        })
+        route("put", path, closure)
     }
 
     /**
      * 注册POST
-     * @param path
-     * @param closure
-     * @return
      */
-    static def POST(String path, Closure closure) {
-        registeredUrls.add("post:${path}")
+    synchronized static def POST(String path, Closure closure) {
 
-        spark.Spark.post(path, new Route(){
-            def handle(Request request, Response response) {
-                closure.delegate = this
-                Closure c = closure.rcurry(convertToParams(request))
-                return c(request, response)
-            }
-        })
+        route("post", path, closure)
     }
 
     /**
      * 注册DELETE
-     * @param path
-     * @param closure
-     * @return
      */
-    static def DELETE(String path, Closure closure) {
-        registeredUrls.add("delete:${path}")
+    synchronized static def DELETE(String path, Closure closure) {
 
-        spark.Spark.delete(path, new Route(){
-            def handle(Request request, Response response) {
-                closure.delegate = this
-                Closure c = closure.rcurry(convertToParams(request))
-                return c(request, response)
-            }
-        })
+        route("delete", path, closure)
     }
 
-    //    def before(final Closure closure){
-//        spark.Spark.before(new Filter(){
-//            void handle(Request request, Response response){
-//                closure.delegate = this
-//                closure(request, response)
-//            }
-//        })
-//    }
-//
-//    def after(final Closure closure){
-//        spark.Spark.after(new Filter(){
-//            void handle(Request request, Response response){
-//                closure.delegate = this
-//                closure(request, response)
-//            }
-//        })
-//    }
-//
-//    private Route createClosureBasedRouteForPath(String path, Closure ... closures) {
-//        new Route(path) {
-//            def handle(Request request, Response response) {
-//                closures*.delegate = this
-//                return closures*.call(request, response).findAll { it }.join()
-//            }
-//        }
-//    }
-//
-//    def get(String path, Closure ... closures) {
-//        spark.Spark.get(createClosureBasedRouteForPath(path, closures))
-//    }
+    /**
+     * 注册BEFORE
+     */
+    synchronized static def BEFORE(Closure closure) {
 
+        route("before", null, closure)
+    }
+
+    /**
+     * 注册AFTER
+     */
+    synchronized static def AFTER(Closure closure) {
+
+        route("after", null, closure)
+    }
+
+    /**
+     * 路由处理
+     */
+    synchronized static def route(String verb, String path, Closure closure) {
+        String key = "${verb}:${path}"
+
+        if(registeredUrls.contains(key)==false) {
+            registeredUrls.add(key)
+
+            if(path != null) {
+                spark.Spark."${verb}"(path, new Route() {
+                    def handle(Request request, Response response) {
+
+                        response.type("text/json")
+
+                        closure.delegate = this
+                        Closure c = closure.rcurry(convertToParams(request))
+                        return c(request, response)
+                    }
+                })
+            }else if(verb == "before" || verb == "after") {
+                spark.Spark."${verb}"(new Filter(){
+                    void handle(Request request, Response response){
+                        closure.delegate = this
+                        closure(request, response)
+                    }
+                })
+            }
+        }else{
+            log.error "请勿重复添加路由:${key}"
+        }
+    }
 }
