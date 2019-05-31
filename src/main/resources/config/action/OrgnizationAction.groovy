@@ -9,7 +9,7 @@ import static com.circleman.util.RouteUtil.*
 class OrgnizationAction {
     boolean define() {
 
-        GET "organization", { Request request, Response response, Map params ->
+        GET "organization/count", { Request request, Response response, Map params ->
 
 
             return json([code: 200, msg: "Hello World!"])

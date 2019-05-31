@@ -43,6 +43,9 @@ dependencies {
     runtime "com.h2database:h2:1.4.192"
     //runtime 'mysql:mysql-connector-java:5.1.47'
 
+    //RestClient
+    compile group: 'io.github.http-builder-ng', name: 'http-builder-ng-core', version: '1.0.3'
+
     //json
     implementation "com.google.code.gson:gson:2.8.5"
 
