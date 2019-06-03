@@ -11,6 +11,18 @@ class OrgnizationAction {
 
         GET "organization/count", { Request request, Response response, Map params ->
 
+            println "organization/count"
+            println request.uri()
+            println params
+            println request.params()
+            println request.attributes()
+            println request.uri().getProperties()
+
+            println "queryParams"
+            request.queryParams().each{String key->
+                println "${key} ${request.queryParamsValues(key)}"
+            }
+            println request.queryParamsValues()
 
             return json([code: 200, msg: "Hello World!"])
         }

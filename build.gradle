@@ -45,7 +45,7 @@ dependencies {
 
     //RestClient
     compile group: 'io.github.http-builder-ng', name: 'http-builder-ng-core', version: '1.0.3'
-
+    
     //json
     implementation "com.google.code.gson:gson:2.8.5"
 

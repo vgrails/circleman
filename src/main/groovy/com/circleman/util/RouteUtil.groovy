@@ -14,7 +14,7 @@ class RouteUtil {
     /**
      * 移除字符类型包裹的 ""或 ''
      */
-    static private String remoteStringQuote( String str){
+    static private String removeStringQuote(String str){
         if(str != null && str[0] in ["\"", "'"] && str[0]==str[-1]){
             str = str[1..-2]
         }
@@ -25,50 +25,41 @@ class RouteUtil {
     /**
      * 将request转换成params
      */
-    static private Map convertToParams(Request request){
+    static private Map convertRequestToParams(Request request){
         Map<String, String> params = [:]
 
-        params.putAll(request.params())
+        request.params().each{
+            println "${it.key} ${it.value}"
+        }
 
-        request.queryParams().each{ String key ->
-            try {
-                if (key.contains("[")) {
-                    println "key: ${key} request.queryMap(key).value()"
-                    key = key - "]"
-                    String[] strings = key.split("\\[")
-                    String group = strings[0]
-                    String attr = strings[1]
 
-                    if (params[group] == null) params[group] = [:]
-
-                    Map map = params[group]
-                    map[attr] = remoteStringQuote(request.queryMap().get(group, attr).value())
-                } else {
-                    params[key] = remoteStringQuote(request.queryMap(key).value())
-                }
-            }catch(Exception e){
-            }
+        request.queryParams().each{ String key->
+            params[key] = removeStringQuote(request.queryParamsValues(key)[0])
         }
 
         Map<String, String> output = [:]
-        //将start转换成: offset
-        try {
-            output["offset"] = Integer.parseInt(params["start"].toString())
-        }catch(Exception e){
-            output["offset"] = 0
-        }
-
-        //将count转换成: max
-        try {
-            output["max"] = Integer.parseInt(params["count"].toString())
-            //params.remove("count")
-        }catch(Exception e){
-            output["max"] = 10
-        }
 
         //:xx -> xx sort_xx -> value => sort -> xx order -> value
         params.each{String key, Object value ->
-            if(key.startsWith("sort_")){
+
+            if(key == "start"){
+                try {
+                    output["offset"] = Integer.parseInt(params["start"].toString())
+                }catch(Exception e){
+                    output["offset"] = 0
+                }
+            }else if(key == "count"){
+                try {
+                    output["max"] = Integer.parseInt(params["count"].toString())
+                }catch(Exception e){
+                    output["max"] = 60
+                }
+            }else if(key == 'id'){
+                try {
+                    output['id']=Long.parseLong(params['id'])
+                }catch(Exception e){
+                }
+            }else if(key.startsWith("sort_")){
                 output["sort"] = key - "sort_"
                 output["order"] = value.toString()
 
@@ -77,15 +68,18 @@ class RouteUtil {
                 String k = key - ":"
                 output[k] = params[key]
                 //params.remove(key)
+            }else{
+                output[key] = params[key]
             }
         }
 
-        //将String id 转换成long id
-        if(params['id']){
-            try {
-                output['id']=Long.parseLong(params['id'])
-            }catch(Exception e){
-            }
+        //设置默认的OFFSET和分页大小
+        if(output['offset'] == null){
+            output["offset"] = 0
+        }
+
+        if(output['max'] == null){
+            output["max"] = 60
         }
 
         return output
@@ -155,7 +149,7 @@ class RouteUtil {
                         response.type("text/json")
 
                         closure.delegate = this
-                        Closure c = closure.rcurry(convertToParams(request))
+                        Closure c = closure.rcurry(convertRequestToParams(request))
                         return c(request, response)
                     }
                 })
